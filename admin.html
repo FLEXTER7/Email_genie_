@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Genie Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0d0b1a;
+            color: #e8e4f0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .login-screen {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0d0b1a 0%, #1e1a36 100%);
+        }
+        
+        .login-box {
+            background: #16132a;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #2d2754;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        .login-box h1 {
+            color: #f5b642;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .login-box p {
+            color: #9590a8;
+            margin-bottom: 30px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            background: #0d0b1a;
+            border: 1px solid #2d2754;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #a855f7;
+        }
+        
+        button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+        }
+        
+        button:hover { opacity: 0.9; }
+        
+        .dashboard {
+            display: none;
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2d2754;
+        }
+        
+        .header h1 {
+            color: #f5b642;
+            font-size: 24px;
+        }
+        
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #ff4d4d;
+            color: #ff4d4d;
+            padding: 8px 20px;
+            font-size: 14px;
+            width: auto;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 77, 77, 0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #16132a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #2d2754;
+        }
+        
+        .stat-card h3 {
+            color: #9590a8;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .stat-value.revenue { color: #34d399; }
+        .stat-value.pending { color: #f5b642; }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2d2754;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid #2d2754;
+            color: #9590a8;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .tab.active {
+            background: #a855f7;
+            color: #fff;
+            border-color: #a855f7;
+        }
+        
+        .section-content {
+            display: none;
+        }
+        
+        .section-content.active {
+            display: block;
+        }
+        
+        .users-section {
+            background: #16132a;
+            border-radius: 12px;
+            border: 1px solid #2d2754;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #2d2754;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section-header h2 {
+            font-size: 18px;
+            color: #fff;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box input {
+            width: 250px;
+            margin: 0;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: #0d0b1a;
+            border: 1px solid #2d2754;
+            color: #9590a8;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .filter-btn.active {
+            background: #a855f7;
+            color: #fff;
+            border-color: #a855f7;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #2d2754;
+        }
+        
+        th {
+            background: #1e1a36;
+            color: #9590a8;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        td {
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        tr:hover td {
+            background: #1e1a36;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status.active {
+            background: rgba(52, 211, 153, 0.1);
+            color: #34d399;
+        }
+        
+        .status.pending {
+            background: rgba(245, 182, 66, 0.1);
+            color: #f5b642;
+        }
+        
+        .status.inactive {
+            background: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+        }
+        
+        .status.trial {
+            background: rgba(168, 85, 247, 0.1);
+            color: #c084fc;
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            width: auto;
+        }
+        
+        .btn-pay {
+            background: #34d399;
+            color: #000;
+        }
+        
+        .btn-edit {
+            background: #2d2754;
+            color: #fff;
+        }
+        
+        .btn-delete {
+            background: #ff4d4d;
+            color: #fff;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #16132a;
+            border: 1px solid #2d2754;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: #fff;
+            font-size: 20px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #9590a8;
+            font-size: 14px;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-method {
+            padding: 15px;
+            background: #0d0b1a;
+            border: 2px solid #2d2754;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .payment-method:hover, .payment-method.selected {
+            border-color: #34d399;
+            background: rgba(52, 211, 153, 0.05);
+        }
+        
+        .payment-method .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .payment-method .name {
+            font-size: 12px;
+            color: #9590a8;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #9590a8;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .search-box input { width: 100%; }
+            .section-header { flex-direction: column; align-items: stretch; }
+            .filter-buttons { overflow-x: auto; }
+            table { font-size: 12px; }
+            th, td { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>Email Genie Admin</h1>
+            <p>Enter credentials to access dashboard</p>
+            <input type="password" id="adminPass" placeholder="Admin Password">
+            <button onclick="login()">Access Dashboard</button>
+            <p style="color: #666; font-size: 12px; margin-top: 15px; text-align: center;">
+                Default: admin123 (change in Supabase)
+            </p>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <div class="header">
+            <h1>Email Genie Dashboard</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="stat-value" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Subscriptions</h3>
+                <div class="stat-value" id="activeUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Payment</h3>
+                <div class="stat-value pending" id="pendingUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Monthly Revenue</h3>
+                <div class="stat-value revenue" id="revenue">$0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('users')">All Users</button>
+            <button class="tab" onclick="switchTab('pending')">Pending Payment</button>
+            <button class="tab" onclick="switchTab('trials')">Free Trials</button>
+        </div>
+
+        <div class="section-content active" id="usersTab">
+            <div class="users-section">
+                <div class="section-header">
+                    <h2>All Users</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search users..." onkeyup="searchUsers()">
+                    </div>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterUsers('all')">All</button>
+                    <button class="filter-btn" onclick="filterUsers('active')">Active</button>
+                    <button class="filter-btn" onclick="filterUsers('pending')">Pending</button>
+                    <button class="filter-btn" onclick="filterUsers('trial')">Trial</button>
+                    <button class="filter-btn" onclick="filterUsers('inactive')">Inactive</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Bridge Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable">
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-content" id="pendingTab">
+            <div class="users-section">
+                <div class="section-header">
+                    <h2>Pending Payment</h2>
+                    <p style="color: #9590a8; font-size: 14px;">Users who need to pay $15 to activate</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Days Since Signup</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingTable">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-content" id="trialsTab">
+            <div class="users-section">
+                <div class="section-header">
+                    <h2>Free Trials</h2>
+                    <p style="color: #9590a8; font-size: 14px;">7-day free trials</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Days Left</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trialsTable">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💳 Record Payment</h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="paymentUserInfo" style="margin-bottom: 20px; padding: 15px; background: #0d0b1a; border-radius: 8px;">
+                <p style="color: #9590a8; font-size: 14px;">User: <span id="payUserName" style="color: #fff; font-weight: 600;"></span></p>
+                <p style="color: #9590a8; font-size: 14px;">Amount: <span style="color: #34d399; font-weight: 600;">$15.00</span></p>
+            </div>
+            <div class="form-group">
+                <label>Payment Method</label>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="selectPayment('cashapp')">
+                        <div class="icon">💵</div>
+                        <div class="name">Cash App</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('venmo')">
+                        <div class="icon">💸</div>
+                        <div class="name">Venmo</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('paypal')">
+                        <div class="icon">🅿️</div>
+                        <div class="name">PayPal</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('zelle')">
+                        <div class="icon">🏦</div>
+                        <div class="name">Zelle</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('other')">
+                        <div class="icon">💰</div>
+                        <div class="name">Other</div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Transaction ID / Note (optional)</label>
+                <input type="text" id="transactionId" placeholder="e.g., Cash App username or confirmation #">
+            </div>
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <input type="text" id="paymentNotes" placeholder="Any additional info...">
+            </div>
+            <button onclick="confirmPayment()" style="width: 100%;">✅ Confirm Payment Received</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration - YOUR CREDENTIALS ARE ALREADY HERE!
+        const SUPABASE_URL = 'https://nnqarkxxlcqjdfgiruaj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ucWFya3h4bGNxamRmZ2lydWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDc1ODksImV4cCI6MjA4NzMyMzU4OX0.dCgEh5Z6sMMjA4d8tSa7jeLjcSJ0ce42UDpVl-yBR9I';
+        const ADMIN_PASSWORD = 'admin123';
+        
+        // Initialize Supabase
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.error('Supabase not configured');
+        }
+        
+        let allUsers = [];
+        let currentUser = null;
+        let selectedPaymentMethod = null;
+
+        async function login() {
+            const pass = document.getElementById('adminPass').value;
+            
+            if (pass !== ADMIN_PASSWORD) {
+                alert('Invalid password');
+                return;
+            }
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            loadDashboard();
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        async function loadDashboard() {
+            try {
+                const { data: users, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                allUsers = users || [];
+                
+                const activeUsers = allUsers.filter(u => u.status === 'active' && u.plan === 'basic');
+                const pendingUsers = allUsers.filter(u => u.status === 'pending');
+                const trialUsers = allUsers.filter(u => u.plan === 'trial');
+                
+                document.getElementById('totalUsers').textContent = allUsers.length;
+                document.getElementById('activeUsers').textContent = activeUsers.length;
+                document.getElementById('pendingUsers').textContent = pendingUsers.length;
+                document.getElementById('revenue').textContent = '$' + (activeUsers.length * 15);
+                
+                renderUsersTable(allUsers);
+                renderPendingTable(pendingUsers);
+                renderTrialsTable(trialUsers);
+                
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+                alert('Error loading data. Check console.');
+            }
+        }
+
+        function getUserStatus(user) {
+            if (user.status === 'inactive') return { class: 'inactive', label: 'Inactive' };
+            if (user.payment_status === 'paid') return { class: 'active', label: 'Active' };
+            if (user.plan === 'trial') {
+                const daysSince = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
+                if (daysSince <= 7) return { class: 'trial', label: 'Trial' };
+            }
+            return { class: 'pending', label: 'Payment Due' };
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('usersTable');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => {
+                const status = getUserStatus(user);
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(user.name)}</strong></td>
+                        <td><code style="background: #0d0b1a; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${escapeHtml(user.bridge_email)}</code></td>
+                        <td>${escapeHtml(user.phone)}</td>
+                        <td><span class="status ${status.class}">${status.label}</span></td>
+                        <td>${formatDate(user.created_at)}</td>
+                        <td>
+                            <div class="action-btns">
+                                ${status.class === 'pending' ? `<button class="action-btn btn-pay" onclick="openPaymentModal('${user.id}')">Mark Paid</button>` : ''}
+                                <button class="action-btn btn-edit" onclick="editUser('${user.id}')">Edit</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPendingTable(users) {
+            const tbody = document.getElementById('pendingTable');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No pending payments</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => {
+                const daysSince = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(user.name)}</strong></td>
+                        <td>${escapeHtml(user.email)}</td>
+                        <td>${escapeHtml(user.phone)}</td>
+                        <td>${daysSince} days</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-pay" onclick="openPaymentModal('${user.id}')">✅ Mark as Paid</button>
+                                <button class="action-btn btn-delete" onclick="deactivateUser('${user.id}')">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderTrialsTable(users) {
+            const tbody = document.getElementById('trialsTable');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No active trials</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => {
+                const daysSince = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
+                const daysLeft = Math.max(0, 7 - daysSince);
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(user.name)}</strong></td>
+                        <td>${escapeHtml(user.email)}</td>
+                        <td>${daysLeft} days left</td>
+                        <td><span class="status trial">Trial</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-pay" onclick="openPaymentModal('${user.id}')">Upgrade to Paid</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.section-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function filterUsers(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            let filtered = allUsers;
+            if (filter !== 'all') {
+                filtered = allUsers.filter(u => {
+                    const status = getUserStatus(u);
+                    return status.class === filter;
+                });
+            }
+            renderUsersTable(filtered);
+        }
+
+        function searchUsers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                u.name.toLowerCase().includes(query) ||
+                u.email.toLowerCase().includes(query) ||
+                u.phone.includes(query) ||
+                u.bridge_email.toLowerCase().includes(query)
+            );
+            renderUsersTable(filtered);
+        }
+
+        function openPaymentModal(userId) {
+            currentUser = allUsers.find(u => u.id === userId);
+            if (!currentUser) return;
+            document.getElementById('payUserName').textContent = currentUser.name;
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+            currentUser = null;
+            selectedPaymentMethod = null;
+            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+        }
+
+        function selectPayment(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        async function confirmPayment() {
+            if (!currentUser || !selectedPaymentMethod) {
+                alert('Please select a payment method');
+                return;
+            }
+            
+            try {
+                const { error: userError } = await supabase
+                    .from('users')
+                    .update({
+                        status: 'active',
+                        plan: 'basic',
+                        payment_status: 'paid'
+                    })
+                    .eq('id', currentUser.id);
+                
+                if (userError) throw userError;
+                
+                const { error: paymentError } = await supabase
+                    .from('payments')
+                    .insert([{
+                        user_id: currentUser.id,
+                        amount: 15,
+                        payment_method: selectedPaymentMethod,
+                        transaction_id: document.getElementById('transactionId').value || null,
+                        notes: document.getElementById('paymentNotes').value || null
+                    }]);
+                
+                if (paymentError) throw paymentError;
+                
+                closeModal();
+                loadDashboard();
+                alert('Payment recorded! User activated.');
+                
+            } catch (err) {
+                console.error('Error recording payment:', err);
+                alert('Error recording payment. Check console.');
+            }
+        }
+
+        async function deactivateUser(userId) {
+            if (!confirm('Are you sure you want to deactivate this user?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ status: 'inactive' })
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                loadDashboard();
+                
+            } catch (err) {
+                console.error('Error deactivating user:', err);
+                alert('Error deactivating user');
+            }
+        }
+
+        function editUser(userId) {
+            alert('Edit feature coming soon. For now, deactivate and have them re-signup if changes needed.');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        document.getElementById('adminPass')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+</html>
