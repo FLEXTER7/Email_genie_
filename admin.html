@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Genie Admin</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -600,17 +599,31 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ucWFya3h4bGNxamRmZ2lydWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDc1ODksImV4cCI6MjA4NzMyMzU4OX0.dCgEh5Z6sMMjA4d8tSa7jeLjcSJ0ce42UDpVl-yBR9I';
         const ADMIN_PASSWORD = 'admin123';
         
-        // Initialize Supabase
-        let supabase;
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            console.error('Supabase not configured');
-        }
-        
         let allUsers = [];
         let currentUser = null;
         let selectedPaymentMethod = null;
+
+        // Fetch helper for Supabase
+        async function supabaseFetch(table, options = {}) {
+            const url = `${SUPABASE_URL}/rest/v1/${table}`;
+            const headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+            };
+            
+            const response = await fetch(url, {
+                ...options,
+                headers: { ...headers, ...options.headers }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Request failed');
+            }
+            
+            return response.json();
+        }
 
         async function login() {
             const pass = document.getElementById('adminPass').value;
@@ -631,13 +644,7 @@
 
         async function loadDashboard() {
             try {
-                const { data: users, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
+                const users = await supabaseFetch('users?order=created_at.desc');
                 allUsers = users || [];
                 
                 const activeUsers = allUsers.filter(u => u.status === 'active' && u.plan === 'basic');
@@ -655,7 +662,7 @@
                 
             } catch (err) {
                 console.error('Error loading dashboard:', err);
-                alert('Error loading data. Check console.');
+                alert('Error loading data: ' + err.message);
             }
         }
 
@@ -810,28 +817,27 @@
             }
             
             try {
-                const { error: userError } = await supabase
-                    .from('users')
-                    .update({
+                // Update user status
+                await supabaseFetch(`users?id=eq.${currentUser.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
                         status: 'active',
                         plan: 'basic',
                         payment_status: 'paid'
                     })
-                    .eq('id', currentUser.id);
+                });
                 
-                if (userError) throw userError;
-                
-                const { error: paymentError } = await supabase
-                    .from('payments')
-                    .insert([{
+                // Record payment
+                await supabaseFetch('payments', {
+                    method: 'POST',
+                    body: JSON.stringify({
                         user_id: currentUser.id,
                         amount: 15,
                         payment_method: selectedPaymentMethod,
                         transaction_id: document.getElementById('transactionId').value || null,
                         notes: document.getElementById('paymentNotes').value || null
-                    }]);
-                
-                if (paymentError) throw paymentError;
+                    })
+                });
                 
                 closeModal();
                 loadDashboard();
@@ -839,7 +845,7 @@
                 
             } catch (err) {
                 console.error('Error recording payment:', err);
-                alert('Error recording payment. Check console.');
+                alert('Error recording payment: ' + err.message);
             }
         }
 
@@ -847,17 +853,15 @@
             if (!confirm('Are you sure you want to deactivate this user?')) return;
             
             try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ status: 'inactive' })
-                    .eq('id', userId);
-                
-                if (error) throw error;
+                await supabaseFetch(`users?id=eq.${userId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: 'inactive' })
+                });
                 loadDashboard();
                 
             } catch (err) {
                 console.error('Error deactivating user:', err);
-                alert('Error deactivating user');
+                alert('Error deactivating user: ' + err.message);
             }
         }
 

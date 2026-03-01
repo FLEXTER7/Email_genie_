@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Genie | CorrLinks to SMS</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -812,40 +811,15 @@
             document.getElementById('mobileNav').style.display = 'none';
         }
         
-        // Initialize Supabase - wait for library to load
-        let supabase = null;
-        function initSupabase() {
-            if (typeof window.supabase !== 'undefined') {
-                try {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log('Supabase connected!');
-                } catch (e) {
-                    console.error('Supabase error:', e);
-                }
-            } else {
-                console.log('Waiting for Supabase...');
-                setTimeout(initSupabase, 500);
-            }
-        }
-        // Start initialization after page loads
-        window.addEventListener('load', initSupabase);
-        
-        // Signup form
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        // Signup form - uses direct fetch to Supabase REST API
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
             const errorMsg = document.getElementById('errorMessage');
             
-            // Check if Supabase is ready
-            if (!supabase) {
-                errorMsg.textContent = 'Database connection failed. Please refresh and try again.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-            
             submitBtn.textContent = 'Creating...';
-            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
             errorMsg.style.display = 'none';
             
             const formData = {
@@ -853,8 +827,8 @@
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 carrier: document.getElementById('carrier').value,
-                corrlinks_email: document.getElementById('corrlinks').value,
-                inmate_name: document.getElementById('inmate').value,
+                corrlinks_email: document.getElementById('corrlinks').value || '',
+                inmate_name: document.getElementById('inmate').value || '',
                 bridge_email: generateBridgeEmail(),
                 sms_email: getSmsEmail(
                     document.getElementById('phone').value,
@@ -867,22 +841,27 @@
             };
             
             try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([formData])
-                    .select();
+                // Direct fetch to Supabase REST API
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(formData)
+                });
                 
-                if (error) {
-                    if (error.message.includes('duplicate')) {
-                        errorMsg.textContent = 'Email already registered';
-                    } else {
-                        errorMsg.textContent = 'Error: ' + error.message;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (errorData.message && errorData.message.includes('duplicate')) {
+                        throw new Error('Email already registered');
                     }
-                    errorMsg.style.display = 'block';
-                    submitBtn.textContent = 'Start My Free Trial →';
-                    submitBtn.classList.remove('loading');
-                    return;
+                    throw new Error(errorData.message || 'Failed to create account');
                 }
+                
+                const data = await response.json();
                 
                 // Show success
                 document.getElementById('signupForm').style.display = 'none';
@@ -891,10 +870,10 @@
                 document.getElementById('bridgeEmailDisplay').textContent = formData.bridge_email;
                 
             } catch (err) {
-                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.textContent = err.message || 'Error creating account. Please try again.';
                 errorMsg.style.display = 'block';
                 submitBtn.textContent = 'Start My Free Trial →';
-                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
             }
         });
         
