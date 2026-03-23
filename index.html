@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Genie | CorrLinks to SMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -767,9 +768,23 @@
     </footer>
 
     <script>
-        // Supabase configuration - UPDATED WITH NEW CREDENTIALS
+        // ============================================
+        // CONFIGURATION - ALL VALUES ARE SET
+        // ============================================
+        
+        // Supabase configuration
         const SUPABASE_URL = 'https://norfqmaprmxxndeuclpl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_dKLzZ-O0nJ0hwbNyGDkhCA_DMkyWDi8';
+        
+        // EmailJS configuration - YOUR CREDENTIALS
+        const EMAILJS_PUBLIC_KEY = 'GpbMcgH91PSTsPp9a';
+        const EMAILJS_SERVICE_ID = 'service_2ivnox5';
+        const EMAILJS_TEMPLATE_ID = 'template_o3vl2zh';
+        
+        // Initialize EmailJS
+        (function() {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+        })();
         
         // Carrier SMS gateways
         const carrierGateways = {
@@ -811,7 +826,7 @@
             document.getElementById('mobileNav').style.display = 'none';
         }
         
-        // Signup form - uses direct fetch to Supabase REST API
+        // Signup form
         document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -841,8 +856,8 @@
             };
             
             try {
-                // Direct fetch to Supabase REST API
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/email_aliases`, {
+                // 1. Save to Supabase
+                const supabaseResponse = await fetch(`${SUPABASE_URL}/rest/v1/email_aliases`, {
                     method: 'POST',
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -853,15 +868,43 @@
                     body: JSON.stringify(formData)
                 });
                 
-                if (!response.ok) {
-                    const errorData = await response.json();
+                if (!supabaseResponse.ok) {
+                    const errorData = await supabaseResponse.json();
                     if (errorData.message && errorData.message.includes('duplicate')) {
                         throw new Error('Email already registered');
                     }
                     throw new Error(errorData.message || 'Failed to create account');
                 }
                 
-                const data = await response.json();
+                // 2. Send confirmation email via EmailJS
+                const trialEndDate = new Date(formData.trial_ends_at).toLocaleDateString();
+                
+                const emailParams = {
+                    user_name: formData.name,
+                    user_email: formData.email,
+                    bridge_email: formData.bridge_email,
+                    trial_end_date: trialEndDate,
+                    phone_number: formData.phone,
+                    carrier: formData.carrier
+                };
+                
+                // Send email to user's email address
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, emailParams);
+                
+                // 3. Also send SMS confirmation (email to SMS gateway)
+                const smsParams = {
+                    user_name: formData.name,
+                    user_email: formData.sms_email, // Send to SMS gateway email
+                    bridge_email: formData.bridge_email,
+                    trial_end_date: trialEndDate,
+                    phone_number: formData.phone,
+                    carrier: formData.carrier,
+                    message: `Email Genie: Your bridge email ${formData.bridge_email} is active. 7-day trial started. Add this email to CorrLinks to receive texts.`
+                };
+                
+                // Send to SMS gateway for text message
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, smsParams)
+                    .catch(err => console.log('SMS send failed (optional):', err));
                 
                 // Show success
                 document.getElementById('signupForm').style.display = 'none';
