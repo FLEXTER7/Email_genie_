@@ -1,891 +1,891 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Genie | CorrLinks to SMS</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --primary: #a855f7;
-            --primary-dark: #7c3aed;
-            --accent: #f5b642;
-            --bg: #0d0b1a;
-            --surface: #16132a;
-            --border: #2d2754;
-            --text: #e8e4f0;
-            --text-muted: #9590a8;
-            --success: #34d399;
-            --warning: #f5b642;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-        
-        .bg-animation {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.4;
-            background: radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(245, 182, 66, 0.1) 0%, transparent 50%);
-        }
-        
-        nav {
-            position: fixed;
-            top: 0; width: 100%;
-            background: rgba(13, 11, 26, 0.92);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 1000;
-            padding: 0 5%;
-        }
-        
-        .nav-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--accent);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 10px;
-            font-size: 20px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 8px;
-            list-style: none;
-        }
-        
-        .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        
-        .nav-links a:hover {
-            color: #c084fc;
-            background: rgba(168, 85, 247, 0.08);
-        }
-        
-        .nav-cta {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #fff !important;
-            padding: 10px 24px !important;
-        }
-        
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text);
-            font-size: 24px;
-        }
-        
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 100px 5% 60px;
-        }
-        
-        .hero-content {
-            max-width: 900px;
-            text-align: center;
-        }
-        
-        .badge {
-            display: inline-block;
-            background: rgba(245, 182, 66, 0.1);
-            border: 1px solid rgba(245, 182, 66, 0.3);
-            color: var(--accent);
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 30px;
-        }
-        
-        .hero h1 {
-            font-size: clamp(40px, 6vw, 72px);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #fff 0%, #c084fc 50%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .hero p {
-            font-size: 20px;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto 40px;
-        }
-        
-        .price-tag {
-            font-size: 48px;
-            font-weight: 800;
-            color: var(--success);
-            margin-bottom: 10px;
-        }
-        
-        .price-tag span {
-            font-size: 20px;
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-        
-        .trial-note {
-            color: var(--warning);
-            font-size: 16px;
-            margin-bottom: 30px;
-        }
-        
-        .cta-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 40px;
-        }
-        
-        .btn {
-            padding: 16px 40px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #fff;
-            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 60px rgba(168, 85, 247, 0.4);
-        }
-        
-        .btn-secondary {
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        
-        .section {
-            padding: 100px 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .section-title h2 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-        
-        .section-title p {
-            color: var(--text-muted);
-            font-size: 18px;
-        }
-        
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        
-        .step {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px 30px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .step:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-        }
-        
-        .step-number {
-            width: 50px; height: 50px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 20px;
-            margin: 0 auto 20px;
-        }
-        
-        .step h3 {
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
-        
-        .step p {
-            color: var(--text-muted);
-            font-size: 15px;
-        }
-        
-        .features {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 80px 5%;
-        }
-        
-        .feature {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .feature-icon {
-            width: 50px; height: 50px;
-            background: rgba(168, 85, 247, 0.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-        
-        .feature h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-        
-        .feature p {
-            color: var(--text-muted);
-            font-size: 15px;
-        }
-        
-        .comparison {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--surface);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        
-        .comparison-table th, .comparison-table td {
-            padding: 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .comparison-table th {
-            background: #1e1a36;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-        
-        .comparison-table .highlight {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .check { color: var(--success); font-weight: 700; }
-        .cross { color: #ff4d4d; }
-        
-        .signup-section {
-            background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
-            border-top: 1px solid var(--border);
-        }
-        
-        .signup-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .form-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 50px;
-        }
-        
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-        
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 14px 18px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 15px;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .checkbox-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 30px 0;
-        }
-        
-        .checkbox-group input {
-            width: auto;
-            margin-top: 4px;
-        }
-        
-        .checkbox-group label {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 18px;
-            font-size: 18px;
-        }
-        
-        .success-message {
-            display: none;
-            background: rgba(52, 211, 153, 0.1);
-            border: 1px solid var(--success);
-            color: var(--success);
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .success-message h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .payment-info {
-            background: rgba(245, 182, 66, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 30px 0;
-            text-align: center;
-            display: none;
-        }
-        
-        .payment-info h4 {
-            color: var(--warning);
-            margin-bottom: 10px;
-        }
-        
-        .bridge-email {
-            font-family: monospace;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 8px;
-            color: var(--accent);
-            word-break: break-all;
-            margin-top: 15px;
-        }
-        
-        footer {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 60px 5% 30px;
-            text-align: center;
-        }
-        
-        .footer-logo {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .disclaimer {
-            color: #555;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-        
-        .error-message {
-            background: rgba(255, 77, 77, 0.1);
-            border: 1px solid #ff4d4d;
-            color: #ff4d4d;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
-            .form-row { grid-template-columns: 1fr; }
-            .form-card { padding: 30px 20px; }
-            .hero h1 { font-size: 36px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="bg-animation"></div>
-    
-    <nav>
-        <div class="nav-content">
-            <a href="#" class="logo"><span class="logo-icon">✉</span> Email Genie</a>
-            <ul class="nav-links">
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#signup" class="nav-cta">Get Started</a></li>
-            </ul>
-            <button class="mobile-menu-btn" onclick="toggleMobileNav()">☰</button>
-        </div>
-    </nav>
-    
-    <div class="mobile-nav" id="mobileNav" style="display:none;position:fixed;top:70px;left:0;width:100%;background:rgba(13,11,26,0.98);padding:20px;z-index:999;">
-        <a href="#how-it-works" onclick="closeMobileNav()">How It Works</a>
-        <a href="#features" onclick="closeMobileNav()">Features</a>
-        <a href="#pricing" onclick="closeMobileNav()">Pricing</a>
-        <a href="#signup" class="nav-cta" onclick="closeMobileNav()">Get Started</a>
-    </div>
-
-    <section class="hero">
-        <div class="hero-content">
-            <div class="badge">7-Day Free Trial</div>
-            <h1>Never Miss a Message<br>From Inside</h1>
-            <p>Get CorrLinks emails delivered instantly as text messages to any phone. Stay connected when it matters most.</p>
-            
-            <div class="price-tag">$15<span>/month</span></div>
-            <p class="trial-note">Start with 7 days free. No credit card required.</p>
-            
-            <div class="cta-group">
-                <a href="#signup" class="btn btn-primary">Start Free Trial →</a>
-                <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="how-it-works">
-        <div class="section-title">
-            <h2>Simple Setup. Instant Delivery.</h2>
-            <p>Three steps to stay connected</p>
-        </div>
-        
-        <div class="steps">
-            <div class="step">
-                <div class="step-number">1</div>
-                <h3>Get Your Bridge Email</h3>
-                <p>Sign up and receive a unique email address that forwards to your phone.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <h3>Add to CorrLinks</h3>
-                <p>Add your bridge email as a contact in your CorrLinks account.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <h3>Receive Texts</h3>
-                <p>Every email from your contact arrives as a text message instantly.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="features-grid">
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <div>
-                    <h3>Instant Delivery</h3>
-                    <p>Messages forwarded in under 30 seconds. No delays, no waiting.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📵</div>
-                <div>
-                    <h3>Works on Any Phone</h3>
-                    <p>Flip phones, smartphones, even pagers. If it gets texts, it works.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔒</div>
-                <div>
-                    <h3>Secure & Private</h3>
-                    <p>End-to-end encryption. Your data never sold or shared.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">💬</div>
-                <div>
-                    <h3>Two-Way Messaging</h3>
-                    <p>Reply to texts and we send it back through CorrLinks automatically.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📧</div>
-                <div>
-                    <h3>Unique Email Address</h3>
-                    <p>Private bridge email for each user. No shared inboxes.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">⚙️</div>
-                <div>
-                    <h3>Zero Maintenance</h3>
-                    <p>Set it once, it works forever. No app to install or update.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="pricing">
-        <div class="section-title">
-            <h2>Why Choose Email Genie?</h2>
-            <p>Compared to official CorrLinks Text service</p>
-        </div>
-        
-        <div class="comparison">
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>CorrLinks Text</th>
-                        <th class="highlight">Email Genie</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>Monthly Price</td><td>$15-36</td><td class="highlight">$15 flat</td></tr>
-                    <tr><td>Free Trial</td><td class="cross">✗ None</td><td class="check">✓ 7 days</td></tr>
-                    <tr><td>Character Limit</td><td>160 characters</td><td class="highlight">1,600 characters</td></tr>
-                    <tr><td>Flip Phone Support</td><td class="cross">✗ No</td><td class="check">✓ Yes</td></tr>
-                    <tr><td>Private Email</td><td class="cross">✗ Shared</td><td class="check">✓ Unique</td></tr>
-                    <tr><td>Reply by Text</td><td class="cross">✗ Not available</td><td class="check">✓ Automatic</td></tr>
-                    <tr><td>Setup Time</td><td>3-5 days</td><td class="highlight">Instant</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <section class="section signup-section" id="signup">
-        <div class="signup-container">
-            <div class="section-title">
-                <h2>Get Started Today</h2>
-                <p>Start your 7-day free trial. No credit card required.</p>
-            </div>
-            
-            <div class="form-card">
-                <form id="signupForm">
-                    <div class="error-message" id="errorMessage"></div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="name">Full Name *</label>
-                            <input type="text" id="name" name="name" required placeholder="Jane Doe">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" required placeholder="jane@example.com">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="phone">Phone Number *</label>
-                            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
-                        </div>
-                        <div class="form-group">
-                            <label for="carrier">Carrier *</label>
-                            <select id="carrier" name="carrier" required>
-                                <option value="">Select carrier</option>
-                                <option value="verizon">Verizon</option>
-                                <option value="att">AT&T</option>
-                                <option value="tmobile">T-Mobile</option>
-                                <option value="sprint">Sprint</option>
-                                <option value="cricket">Cricket</option>
-                                <option value="boost">Boost Mobile</option>
-                                <option value="metro">Metro PCS</option>
-                                <option value="straighttalk">Straight Talk</option>
-                                <option value="uscellular">US Cellular</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="corrlinks">Your CorrLinks Email (optional)</label>
-                        <input type="email" id="corrlinks" name="corrlinks" placeholder="you@corrlinks.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="inmate">Inmate Name (optional)</label>
-                        <input type="text" id="inmate" name="inmate" placeholder="John Smith">
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="consent" name="consent" required>
-                        <label for="consent">I agree to receive SMS notifications from Email Genie. Message and data rates may apply. Reply STOP to cancel at any time.</label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">Start My Free Trial →</button>
-                </form>
-                
-                <div class="payment-info" id="paymentInfo">
-                    <h4>🎉 Trial Started!</h4>
-                    <p>After 7 days, pay $15/month via Cash App, Venmo, or Zelle to continue service.</p>
-                    <p><strong>Cash App:</strong> $YourCashTag</p>
-                    <p><strong>PayPal:</strong> your@email.com</p>
-                    <p><strong>Zelle:</strong> your-phone-number</p>
-                </div>
-                
-                <div class="success-message" id="successMessage">
-                    <h3>Welcome to Email Genie!</h3>
-                    <p>Your bridge email has been created. Check your phone for a confirmation text.</p>
-                    <div class="bridge-email" id="bridgeEmailDisplay"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="footer-content">
-            <div class="footer-logo"><span class="logo-icon" style="display:inline-flex;width:32px;height:32px;font-size:18px;vertical-align:middle;margin-right:8px;">✉</span>Email Genie</div>
-            <div class="footer-links">
-                <a href="#how-it-works">How It Works</a>
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="mailto:support@emailgenie.app">Support</a>
-                <a href="admin.html">Admin</a>
-            </div>
-            <p class="disclaimer">
-                Email Genie is an independent service not affiliated with CorrLinks or the Federal Bureau of Prisons.<br>
-                All messages are subject to monitoring by correctional facility staff.<br><br>
-                &copy; 2025 Email Genie. All rights reserved.
-            </p>
-        </div>
-    </footer>
-
-    <script>
-        // Supabase configuration - YOUR CREDENTIALS ARE ALREADY HERE!
-        const SUPABASE_URL = 'https://nnqarkxxlcqjdfgiruaj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ucWFya3h4bGNxamRmZ2lydWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDc1ODksImV4cCI6MjA4NzMyMzU4OX0.dCgEh5Z6sMMjA4d8tSa7jeLjcSJ0ce42UDpVl-yBR9I';
-        
-        // Carrier SMS gateways
-        const carrierGateways = {
-            verizon: 'vtext.com',
-            att: 'txt.att.net',
-            tmobile: 'tmomail.net',
-            sprint: 'messaging.sprintpcs.com',
-            cricket: 'sms.cricketwireless.net',
-            boost: 'sms.myboostmobile.com',
-            metro: 'mymetropcs.com',
-            straighttalk: 'vtext.com',
-            uscellular: 'email.uscc.net',
-            other: 'vtext.com'
-        };
-        
-        function generateBridgeEmail() {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 5);
-            return `user-${timestamp}-${random}@bridge.emailgenie.app`;
-        }
-        
-        function formatPhone(phone) {
-            return phone.replace(/\D/g, '');
-        }
-        
-        function getSmsEmail(phone, carrier) {
-            const cleanPhone = formatPhone(phone);
-            const gateway = carrierGateways[carrier] || carrierGateways.other;
-            return `${cleanPhone}@${gateway}`;
-        }
-        
-        // Mobile nav
-        function toggleMobileNav() {
-            const nav = document.getElementById('mobileNav');
-            nav.style.display = nav.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function closeMobileNav() {
-            document.getElementById('mobileNav').style.display = 'none';
-        }
-        
-        // Signup form - uses direct fetch to Supabase REST API
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const errorMsg = document.getElementById('errorMessage');
-            
-            submitBtn.textContent = 'Creating...';
-            submitBtn.disabled = true;
-            errorMsg.style.display = 'none';
-            
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                carrier: document.getElementById('carrier').value,
-                corrlinks_email: document.getElementById('corrlinks').value || '',
-                inmate_name: document.getElementById('inmate').value || '',
-                bridge_email: generateBridgeEmail(),
-                sms_email: getSmsEmail(
-                    document.getElementById('phone').value,
-                    document.getElementById('carrier').value
-                ),
-                status: 'trial',
-                plan: 'trial',
-                payment_status: 'pending',
-                trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-            };
-            
-            try {
-                // Direct fetch to Supabase REST API
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/email_aliases`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    if (errorData.message && errorData.message.includes('duplicate')) {
-                        throw new Error('Email already registered');
-                    }
-                    throw new Error(errorData.message || 'Failed to create account');
-                }
-                
-                const data = await response.json();
-                
-                // Show success
-                document.getElementById('signupForm').style.display = 'none';
-                document.getElementById('paymentInfo').style.display = 'block';
-                document.getElementById('successMessage').style.display = 'block';
-                document.getElementById('bridgeEmailDisplay').textContent = formData.bridge_email;
-                
-            } catch (err) {
-                errorMsg.textContent = err.message || 'Error creating account. Please try again.';
-                errorMsg.style.display = 'block';
-                submitBtn.textContent = 'Start My Free Trial →';
-                submitBtn.disabled = false;
-            }
-        });
-        
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Genie | CorrLinks to SMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #a855f7;
+            --primary-dark: #7c3aed;
+            --accent: #f5b642;
+            --bg: #0d0b1a;
+            --surface: #16132a;
+            --border: #2d2754;
+            --text: #e8e4f0;
+            --text-muted: #9590a8;
+            --success: #34d399;
+            --warning: #f5b642;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+            background: radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(245, 182, 66, 0.1) 0%, transparent 50%);
+        }
+        
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            background: rgba(13, 11, 26, 0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 0 5%;
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 10px;
+            font-size: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: #c084fc;
+            background: rgba(168, 85, 247, 0.08);
+        }
+        
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff !important;
+            padding: 10px 24px !important;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 5% 60px;
+        }
+        
+        .hero-content {
+            max-width: 900px;
+            text-align: center;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(245, 182, 66, 0.1);
+            border: 1px solid rgba(245, 182, 66, 0.3);
+            color: var(--accent);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+        
+        .hero h1 {
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #c084fc 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .price-tag {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+        
+        .price-tag span {
+            font-size: 20px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        
+        .trial-note {
+            color: var(--warning);
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .cta-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 60px rgba(168, 85, 247, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .section {
+            padding: 100px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-title h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .section-title p {
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .step:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .step-number {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            margin: 0 auto 20px;
+        }
+        
+        .step h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .step p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+        
+        .features {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 5%;
+        }
+        
+        .feature {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .feature-icon {
+            width: 50px; height: 50px;
+            background: rgba(168, 85, 247, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .feature h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        
+        .feature p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+        
+        .comparison {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .comparison-table th {
+            background: #1e1a36;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .comparison-table .highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .check { color: var(--success); font-weight: 700; }
+        .cross { color: #ff4d4d; }
+        
+        .signup-section {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+            border-top: 1px solid var(--border);
+        }
+        
+        .signup-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 50px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 30px 0;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+            margin-top: 4px;
+        }
+        
+        .checkbox-group label {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+        }
+        
+        .success-message {
+            display: none;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .success-message h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .payment-info {
+            background: rgba(245, 182, 66, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .payment-info h4 {
+            color: var(--warning);
+            margin-bottom: 10px;
+        }
+        
+        .bridge-email {
+            font-family: monospace;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--accent);
+            word-break: break-all;
+            margin-top: 15px;
+        }
+        
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 60px 5% 30px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .disclaimer {
+            color: #555;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .error-message {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid #ff4d4d;
+            color: #ff4d4d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .form-row { grid-template-columns: 1fr; }
+            .form-card { padding: 30px 20px; }
+            .hero h1 { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <nav>
+        <div class="nav-content">
+            <a href="#" class="logo"><span class="logo-icon">✉</span> Email Genie</a>
+            <ul class="nav-links">
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#signup" class="nav-cta">Get Started</a></li>
+            </ul>
+            <button class="mobile-menu-btn" onclick="toggleMobileNav()">☰</button>
+        </div>
+    </nav>
+    
+    <div class="mobile-nav" id="mobileNav" style="display:none;position:fixed;top:70px;left:0;width:100%;background:rgba(13,11,26,0.98);padding:20px;z-index:999;">
+        <a href="#how-it-works" onclick="closeMobileNav()">How It Works</a>
+        <a href="#features" onclick="closeMobileNav()">Features</a>
+        <a href="#pricing" onclick="closeMobileNav()">Pricing</a>
+        <a href="#signup" class="nav-cta" onclick="closeMobileNav()">Get Started</a>
+    </div>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">7-Day Free Trial</div>
+            <h1>Never Miss a Message<br>From Inside</h1>
+            <p>Get CorrLinks emails delivered instantly as text messages to any phone. Stay connected when it matters most.</p>
+            
+            <div class="price-tag">$15<span>/month</span></div>
+            <p class="trial-note">Start with 7 days free. No credit card required.</p>
+            
+            <div class="cta-group">
+                <a href="#signup" class="btn btn-primary">Start Free Trial →</a>
+                <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+        <div class="section-title">
+            <h2>Simple Setup. Instant Delivery.</h2>
+            <p>Three steps to stay connected</p>
+        </div>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Get Your Bridge Email</h3>
+                <p>Sign up and receive a unique email address that forwards to your phone.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Add to CorrLinks</h3>
+                <p>Add your bridge email as a contact in your CorrLinks account.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Receive Texts</h3>
+                <p>Every email from your contact arrives as a text message instantly.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="features-grid">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div>
+                    <h3>Instant Delivery</h3>
+                    <p>Messages forwarded in under 30 seconds. No delays, no waiting.</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📵</div>
+                <div>
+                    <h3>Works on Any Phone</h3>
+                    <p>Flip phones, smartphones, even pagers. If it gets texts, it works.</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div>
+                    <h3>Secure & Private</h3>
+                    <p>End-to-end encryption. Your data never sold or shared.</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <div>
+                    <h3>Two-Way Messaging</h3>
+                    <p>Reply to texts and we send it back through CorrLinks automatically.</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📧</div>
+                <div>
+                    <h3>Unique Email Address</h3>
+                    <p>Private bridge email for each user. No shared inboxes.</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚙️</div>
+                <div>
+                    <h3>Zero Maintenance</h3>
+                    <p>Set it once, it works forever. No app to install or update.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="pricing">
+        <div class="section-title">
+            <h2>Why Choose Email Genie?</h2>
+            <p>Compared to official CorrLinks Text service</p>
+        </div>
+        
+        <div class="comparison">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>CorrLinks Text</th>
+                        <th class="highlight">Email Genie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Monthly Price</td><td>$15-36</td><td class="highlight">$15 flat</td></tr>
+                    <tr><td>Free Trial</td><td class="cross">✗ None</td><td class="check">✓ 7 days</td></tr>
+                    <tr><td>Character Limit</td><td>160 characters</td><td class="highlight">1,600 characters</td></tr>
+                    <tr><td>Flip Phone Support</td><td class="cross">✗ No</td><td class="check">✓ Yes</td></tr>
+                    <tr><td>Private Email</td><td class="cross">✗ Shared</td><td class="check">✓ Unique</td></tr>
+                    <tr><td>Reply by Text</td><td class="cross">✗ Not available</td><td class="check">✓ Automatic</td></tr>
+                    <tr><td>Setup Time</td><td>3-5 days</td><td class="highlight">Instant</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section signup-section" id="signup">
+        <div class="signup-container">
+            <div class="section-title">
+                <h2>Get Started Today</h2>
+                <p>Start your 7-day free trial. No credit card required.</p>
+            </div>
+            
+            <div class="form-card">
+                <form id="signupForm">
+                    <div class="error-message" id="errorMessage"></div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" name="name" required placeholder="Jane Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required placeholder="jane@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label for="carrier">Carrier *</label>
+                            <select id="carrier" name="carrier" required>
+                                <option value="">Select carrier</option>
+                                <option value="verizon">Verizon</option>
+                                <option value="att">AT&T</option>
+                                <option value="tmobile">T-Mobile</option>
+                                <option value="sprint">Sprint</option>
+                                <option value="cricket">Cricket</option>
+                                <option value="boost">Boost Mobile</option>
+                                <option value="metro">Metro PCS</option>
+                                <option value="straighttalk">Straight Talk</option>
+                                <option value="uscellular">US Cellular</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="corrlinks">Your CorrLinks Email (optional)</label>
+                        <input type="email" id="corrlinks" name="corrlinks" placeholder="you@corrlinks.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inmate">Inmate Name (optional)</label>
+                        <input type="text" id="inmate" name="inmate" placeholder="John Smith">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="consent" name="consent" required>
+                        <label for="consent">I agree to receive SMS notifications from Email Genie. Message and data rates may apply. Reply STOP to cancel at any time.</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">Start My Free Trial →</button>
+                </form>
+                
+                <div class="payment-info" id="paymentInfo">
+                    <h4>🎉 Trial Started!</h4>
+                    <p>After 7 days, pay $15/month via Cash App, Venmo, or Zelle to continue service.</p>
+                    <p><strong>Cash App:</strong> $YourCashTag</p>
+                    <p><strong>PayPal:</strong> your@email.com</p>
+                    <p><strong>Zelle:</strong> your-phone-number</p>
+                </div>
+                
+                <div class="success-message" id="successMessage">
+                    <h3>Welcome to Email Genie!</h3>
+                    <p>Your bridge email has been created. Check your phone for a confirmation text.</p>
+                    <div class="bridge-email" id="bridgeEmailDisplay"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo"><span class="logo-icon" style="display:inline-flex;width:32px;height:32px;font-size:18px;vertical-align:middle;margin-right:8px;">✉</span>Email Genie</div>
+            <div class="footer-links">
+                <a href="#how-it-works">How It Works</a>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="mailto:support@emailgenie.app">Support</a>
+                <a href="admin.html">Admin</a>
+            </div>
+            <p class="disclaimer">
+                Email Genie is an independent service not affiliated with CorrLinks or the Federal Bureau of Prisons.<br>
+                All messages are subject to monitoring by correctional facility staff.<br><br>
+                &copy; 2025 Email Genie. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Supabase configuration - UPDATED WITH NEW CREDENTIALS
+        const SUPABASE_URL = 'https://norfqmaprmxxndeuclpl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_dKLzZ-O0nJ0hwbNyGDkhCA_DMkyWDi8';
+        
+        // Carrier SMS gateways
+        const carrierGateways = {
+            verizon: 'vtext.com',
+            att: 'txt.att.net',
+            tmobile: 'tmomail.net',
+            sprint: 'messaging.sprintpcs.com',
+            cricket: 'sms.cricketwireless.net',
+            boost: 'sms.myboostmobile.com',
+            metro: 'mymetropcs.com',
+            straighttalk: 'vtext.com',
+            uscellular: 'email.uscc.net',
+            other: 'vtext.com'
+        };
+        
+        function generateBridgeEmail() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 5);
+            return `user-${timestamp}-${random}@bridge.emailgenie.app`;
+        }
+        
+        function formatPhone(phone) {
+            return phone.replace(/\D/g, '');
+        }
+        
+        function getSmsEmail(phone, carrier) {
+            const cleanPhone = formatPhone(phone);
+            const gateway = carrierGateways[carrier] || carrierGateways.other;
+            return `${cleanPhone}@${gateway}`;
+        }
+        
+        // Mobile nav
+        function toggleMobileNav() {
+            const nav = document.getElementById('mobileNav');
+            nav.style.display = nav.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function closeMobileNav() {
+            document.getElementById('mobileNav').style.display = 'none';
+        }
+        
+        // Signup form - uses direct fetch to Supabase REST API
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            submitBtn.textContent = 'Creating...';
+            submitBtn.disabled = true;
+            errorMsg.style.display = 'none';
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                carrier: document.getElementById('carrier').value,
+                corrlinks_email: document.getElementById('corrlinks').value || '',
+                inmate_name: document.getElementById('inmate').value || '',
+                bridge_email: generateBridgeEmail(),
+                sms_email: getSmsEmail(
+                    document.getElementById('phone').value,
+                    document.getElementById('carrier').value
+                ),
+                status: 'trial',
+                plan: 'trial',
+                payment_status: 'pending',
+                trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            };
+            
+            try {
+                // Direct fetch to Supabase REST API
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/email_aliases`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (errorData.message && errorData.message.includes('duplicate')) {
+                        throw new Error('Email already registered');
+                    }
+                    throw new Error(errorData.message || 'Failed to create account');
+                }
+                
+                const data = await response.json();
+                
+                // Show success
+                document.getElementById('signupForm').style.display = 'none';
+                document.getElementById('paymentInfo').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('bridgeEmailDisplay').textContent = formData.bridge_email;
+                
+            } catch (err) {
+                errorMsg.textContent = err.message || 'Error creating account. Please try again.';
+                errorMsg.style.display = 'block';
+                submitBtn.textContent = 'Start My Free Trial →';
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
 </html>
