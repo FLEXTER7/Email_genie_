@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Genie | CorrLinks to SMS</title>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -165,16 +164,11 @@
             margin-bottom: 10px;
         }
         
-        .price-tag span {
-            font-size: 20px;
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-        
         .trial-note {
-            color: var(--warning);
+            color: var(--accent);
             font-size: 16px;
             margin-bottom: 30px;
+            font-weight: 600;
         }
         
         .cta-group {
@@ -205,9 +199,14 @@
             box-shadow: 0 10px 40px rgba(168, 85, 247, 0.3);
         }
         
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 20px 60px rgba(168, 85, 247, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
         
         .btn-secondary {
@@ -322,42 +321,6 @@
             font-size: 15px;
         }
         
-        .comparison {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--surface);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        
-        .comparison-table th, .comparison-table td {
-            padding: 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .comparison-table th {
-            background: #1e1a36;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-        
-        .comparison-table .highlight {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .check { color: var(--success); font-weight: 700; }
-        .cross { color: #ff4d4d; }
-        
         .signup-section {
             background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
             border-top: 1px solid var(--border);
@@ -388,8 +351,7 @@
         }
         
         .form-group input, .form-group select {
-            width: 100%;
-            padding: 14px 18px;
+            width: 100%;\n            padding: 14px 18px;
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -402,7 +364,9 @@
             border-color: var(--primary);
         }
         
-        .form-row {
+        .form-group input[aria-invalid="true"] {
+            border-color: #ff4d4d;
+            background: rgba(255, 77, 77, 0.05);\n        }\n        \n        .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
@@ -432,7 +396,6 @@
         }
         
         .success-message {
-            display: none;
             background: rgba(52, 211, 153, 0.1);
             border: 1px solid var(--success);
             color: var(--success);
@@ -447,21 +410,6 @@
             margin-bottom: 10px;
         }
         
-        .payment-info {
-            background: rgba(245, 182, 66, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 30px 0;
-            text-align: center;
-            display: none;
-        }
-        
-        .payment-info h4 {
-            color: var(--warning);
-            margin-bottom: 10px;
-        }
-        
         .bridge-email {
             font-family: monospace;
             background: rgba(0,0,0,0.3);
@@ -470,465 +418,11 @@
             color: var(--accent);
             word-break: break-all;
             margin-top: 15px;
-        }
-        
-        footer {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 60px 5% 30px;
-            text-align: center;
-        }
-        
-        .footer-logo {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
             font-size: 14px;
-        }
+            cursor: pointer;\n        }\n        \n        .bridge-email:hover {\n            background: rgba(0,0,0,0.5);\n        }\n        \n        .error-message {\n            color: #ff4d4d;\n            font-size: 13px;\n            margin-top: 4px;\n        }\n        \n        [data-fs-success] {\n            display: none;\n        }\n        \n        [data-fs-success].show {\n            display: block;\n        }\n        \n        [data-fs-error] {\n            display: none;\n            color: #ff4d4d;\n            font-size: 13px;\n            margin-top: 4px;\n        }\n        \n        [data-fs-error].show {\n            display: block;\n        }\n        \n        footer {\n            background: var(--surface);\n            border-top: 1px solid var(--border);\n            padding: 60px 5% 30px;\n            text-align: center;\n        }
+        \n        .footer-logo {\n            font-size: 28px;\n            font-weight: 700;\n            color: var(--primary);\n            margin-bottom: 20px;\n        }
+        \n        .footer-links {\n            display: flex;\n            justify-content: center;\n            gap: 30px;\n            margin-bottom: 30px;\n            flex-wrap: wrap;\n        }
+        \n        .footer-links a {\n            color: var(--text-muted);\n            text-decoration: none;\n            font-size: 14px;\n        }
+        \n        .disclaimer {\n            color: #555;\n            font-size: 12px;\n            line-height: 1.6;\n        }
         
-        .disclaimer {
-            color: #555;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-        
-        .error-message {
-            background: rgba(255, 77, 77, 0.1);
-            border: 1px solid #ff4d4d;
-            color: #ff4d4d;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
-            .form-row { grid-template-columns: 1fr; }
-            .form-card { padding: 30px 20px; }
-            .hero h1 { font-size: 36px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="bg-animation"></div>
-    
-    <nav>
-        <div class="nav-content">
-            <a href="#" class="logo"><span class="logo-icon">✉</span> Email Genie</a>
-            <ul class="nav-links">
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#signup" class="nav-cta">Get Started</a></li>
-            </ul>
-            <button class="mobile-menu-btn" onclick="toggleMobileNav()">☰</button>
-        </div>
-    </nav>
-    
-    <div class="mobile-nav" id="mobileNav" style="display:none;position:fixed;top:70px;left:0;width:100%;background:rgba(13,11,26,0.98);padding:20px;z-index:999;">
-        <a href="#how-it-works" onclick="closeMobileNav()">How It Works</a>
-        <a href="#features" onclick="closeMobileNav()">Features</a>
-        <a href="#pricing" onclick="closeMobileNav()">Pricing</a>
-        <a href="#signup" class="nav-cta" onclick="closeMobileNav()">Get Started</a>
-    </div>
-
-    <section class="hero">
-        <div class="hero-content">
-            <div class="badge">7-Day Free Trial</div>
-            <h1>Never Miss a Message<br>From Inside</h1>
-            <p>Get CorrLinks emails delivered instantly as text messages to any phone. Stay connected when it matters most.</p>
-            
-            <div class="price-tag">$15<span>/month</span></div>
-            <p class="trial-note">Start with 7 days free. No credit card required.</p>
-            
-            <div class="cta-group">
-                <a href="#signup" class="btn btn-primary">Start Free Trial →</a>
-                <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="how-it-works">
-        <div class="section-title">
-            <h2>Simple Setup. Instant Delivery.</h2>
-            <p>Three steps to stay connected</p>
-        </div>
-        
-        <div class="steps">
-            <div class="step">
-                <div class="step-number">1</div>
-                <h3>Get Your Bridge Email</h3>
-                <p>Sign up and receive a unique email address that forwards to your phone.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <h3>Add to CorrLinks</h3>
-                <p>Add your bridge email as a contact in your CorrLinks account.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <h3>Receive Texts</h3>
-                <p>Every email from your contact arrives as a text message instantly.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="features-grid">
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <div>
-                    <h3>Instant Delivery</h3>
-                    <p>Messages forwarded in under 30 seconds. No delays, no waiting.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📵</div>
-                <div>
-                    <h3>Works on Any Phone</h3>
-                    <p>Flip phones, smartphones, even pagers. If it gets texts, it works.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔒</div>
-                <div>
-                    <h3>Secure & Private</h3>
-                    <p>End-to-end encryption. Your data never sold or shared.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">💬</div>
-                <div>
-                    <h3>Two-Way Messaging</h3>
-                    <p>Reply to texts and we send it back through CorrLinks automatically.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📧</div>
-                <div>
-                    <h3>Unique Email Address</h3>
-                    <p>Private bridge email for each user. No shared inboxes.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">⚙️</div>
-                <div>
-                    <h3>Zero Maintenance</h3>
-                    <p>Set it once, it works forever. No app to install or update.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="pricing">
-        <div class="section-title">
-            <h2>Why Choose Email Genie?</h2>
-            <p>Compared to official CorrLinks Text service</p>
-        </div>
-        
-        <div class="comparison">
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>CorrLinks Text</th>
-                        <th class="highlight">Email Genie</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>Monthly Price</td><td>$15-36</td><td class="highlight">$15 flat</td></tr>
-                    <tr><td>Free Trial</td><td class="cross">✗ None</td><td class="check">✓ 7 days</td></tr>
-                    <tr><td>Character Limit</td><td>160 characters</td><td class="highlight">1,600 characters</td></tr>
-                    <tr><td>Flip Phone Support</td><td class="cross">✗ No</td><td class="check">✓ Yes</td></tr>
-                    <tr><td>Private Email</td><td class="cross">✗ Shared</td><td class="check">✓ Unique</td></tr>
-                    <tr><td>Reply by Text</td><td class="cross">✗ Not available</td><td class="check">✓ Automatic</td></tr>
-                    <tr><td>Setup Time</td><td>3-5 days</td><td class="highlight">Instant</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <section class="section signup-section" id="signup">
-        <div class="signup-container">
-            <div class="section-title">
-                <h2>Get Started Today</h2>
-                <p>Start your 7-day free trial. No credit card required.</p>
-            </div>
-            
-            <div class="form-card">
-                <form id="signupForm">
-                    <div class="error-message" id="errorMessage"></div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="name">Full Name *</label>
-                            <input type="text" id="name" name="name" required placeholder="Jane Doe">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" required placeholder="jane@example.com">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="phone">Phone Number *</label>
-                            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
-                        </div>
-                        <div class="form-group">
-                            <label for="carrier">Carrier *</label>
-                            <select id="carrier" name="carrier" required>
-                                <option value="">Select carrier</option>
-                                <option value="verizon">Verizon</option>
-                                <option value="att">AT&T</option>
-                                <option value="tmobile">T-Mobile</option>
-                                <option value="sprint">Sprint</option>
-                                <option value="cricket">Cricket</option>
-                                <option value="boost">Boost Mobile</option>
-                                <option value="metro">Metro PCS</option>
-                                <option value="straighttalk">Straight Talk</option>
-                                <option value="uscellular">US Cellular</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="corrlinks">Your CorrLinks Email (optional)</label>
-                        <input type="email" id="corrlinks" name="corrlinks" placeholder="you@corrlinks.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="inmate">Inmate Name (optional)</label>
-                        <input type="text" id="inmate" name="inmate" placeholder="John Smith">
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="consent" name="consent" required>
-                        <label for="consent">I agree to receive SMS notifications from Email Genie. Message and data rates may apply. Reply STOP to cancel at any time.</label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">Start My Free Trial →</button>
-                </form>
-                
-                <div class="payment-info" id="paymentInfo">
-                    <h4>🎉 Trial Started!</h4>
-                    <p>After 7 days, pay $15/month via Cash App, Venmo, or Zelle to continue service.</p>
-                    <p><strong>Cash App:</strong> $YourCashTag</p>
-                    <p><strong>PayPal:</strong> your@email.com</p>
-                    <p><strong>Zelle:</strong> your-phone-number</p>
-                </div>
-                
-                <div class="success-message" id="successMessage">
-                    <h3>Welcome to Email Genie!</h3>
-                    <p>Your bridge email has been created. Check your phone for a confirmation text.</p>
-                    <div class="bridge-email" id="bridgeEmailDisplay"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="footer-content">
-            <div class="footer-logo"><span class="logo-icon" style="display:inline-flex;width:32px;height:32px;font-size:18px;vertical-align:middle;margin-right:8px;">✉</span>Email Genie</div>
-            <div class="footer-links">
-                <a href="#how-it-works">How It Works</a>
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="mailto:support@emailgenie.app">Support</a>
-                <a href="admin.html">Admin</a>
-            </div>
-            <p class="disclaimer">
-                Email Genie is an independent service not affiliated with CorrLinks or the Federal Bureau of Prisons.<br>
-                All messages are subject to monitoring by correctional facility staff.<br><br>
-                &copy; 2025 Email Genie. All rights reserved.
-            </p>
-        </div>
-    </footer>
-
-    <script>
-        // ============================================
-        // CONFIGURATION - ALL VALUES ARE SET
-        // ============================================
-        
-        // Supabase configuration
-        const SUPABASE_URL = 'https://norfqmaprmxxndeuclpl.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_dKLzZ-O0nJ0hwbNyGDkhCA_DMkyWDi8';
-        
-        // EmailJS configuration - YOUR CREDENTIALS
-        const EMAILJS_PUBLIC_KEY = 'GpbMcgH91PSTsPp9a';
-        const EMAILJS_SERVICE_ID = 'service_2ivnox5';
-        const EMAILJS_TEMPLATE_ID = 'template_o3vl2zh';
-        
-        // Initialize EmailJS
-        (function() {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
-        })();
-        
-        // Carrier SMS gateways
-        const carrierGateways = {
-            verizon: 'vtext.com',
-            att: 'txt.att.net',
-            tmobile: 'tmomail.net',
-            sprint: 'messaging.sprintpcs.com',
-            cricket: 'sms.cricketwireless.net',
-            boost: 'sms.myboostmobile.com',
-            metro: 'mymetropcs.com',
-            straighttalk: 'vtext.com',
-            uscellular: 'email.uscc.net',
-            other: 'vtext.com'
-        };
-        
-        function generateBridgeEmail() {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 5);
-            return `user-${timestamp}-${random}@bridge.emailgenie.app`;
-        }
-        
-        function formatPhone(phone) {
-            return phone.replace(/\D/g, '');
-        }
-        
-        function getSmsEmail(phone, carrier) {
-            const cleanPhone = formatPhone(phone);
-            const gateway = carrierGateways[carrier] || carrierGateways.other;
-            return `${cleanPhone}@${gateway}`;
-        }
-        
-        // Mobile nav
-        function toggleMobileNav() {
-            const nav = document.getElementById('mobileNav');
-            nav.style.display = nav.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function closeMobileNav() {
-            document.getElementById('mobileNav').style.display = 'none';
-        }
-        
-        // Signup form
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const errorMsg = document.getElementById('errorMessage');
-            
-            submitBtn.textContent = 'Creating...';
-            submitBtn.disabled = true;
-            errorMsg.style.display = 'none';
-            
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                carrier: document.getElementById('carrier').value,
-                corrlinks_email: document.getElementById('corrlinks').value || '',
-                inmate_name: document.getElementById('inmate').value || '',
-                bridge_email: generateBridgeEmail(),
-                sms_email: getSmsEmail(
-                    document.getElementById('phone').value,
-                    document.getElementById('carrier').value
-                ),
-                status: 'trial',
-                plan: 'trial',
-                payment_status: 'pending',
-                trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-            };
-            
-            try {
-                // 1. Save to Supabase
-                const supabaseResponse = await fetch(`${SUPABASE_URL}/rest/v1/email_aliases`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!supabaseResponse.ok) {
-                    const errorData = await supabaseResponse.json();
-                    if (errorData.message && errorData.message.includes('duplicate')) {
-                        throw new Error('Email already registered');
-                    }
-                    throw new Error(errorData.message || 'Failed to create account');
-                }
-                
-                // 2. Send confirmation email via EmailJS
-                const trialEndDate = new Date(formData.trial_ends_at).toLocaleDateString();
-                
-                const emailParams = {
-                    user_name: formData.name,
-                    user_email: formData.email,
-                    bridge_email: formData.bridge_email,
-                    trial_end_date: trialEndDate,
-                    phone_number: formData.phone,
-                    carrier: formData.carrier
-                };
-                
-                // Send email to user's email address
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, emailParams);
-                
-                // 3. Also send SMS confirmation (email to SMS gateway)
-                const smsParams = {
-                    user_name: formData.name,
-                    user_email: formData.sms_email, // Send to SMS gateway email
-                    bridge_email: formData.bridge_email,
-                    trial_end_date: trialEndDate,
-                    phone_number: formData.phone,
-                    carrier: formData.carrier,
-                    message: `Email Genie: Your bridge email ${formData.bridge_email} is active. 7-day trial started. Add this email to CorrLinks to receive texts.`
-                };
-                
-                // Send to SMS gateway for text message
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, smsParams)
-                    .catch(err => console.log('SMS send failed (optional):', err));
-                
-                // Show success
-                document.getElementById('signupForm').style.display = 'none';
-                document.getElementById('paymentInfo').style.display = 'block';
-                document.getElementById('successMessage').style.display = 'block';
-                document.getElementById('bridgeEmailDisplay').textContent = formData.bridge_email;
-                
-            } catch (err) {
-                errorMsg.textContent = err.message || 'Error creating account. Please try again.';
-                errorMsg.style.display = 'block';
-                submitBtn.textContent = 'Start My Free Trial →';
-                submitBtn.disabled = false;
-            }
-        });
-        
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+        @media (max-width: 768px) {\n            .nav-links { display: none; }\n            .mobile-menu-btn { display: block; }\n            .form-row { grid-template-columns: 1fr; }\n            .form-card { padding: 30px 20px; }\n            .hero h1 { font-size: 36px; }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"bg-animation\"></div>\n    \n    <nav>\n        <div class=\"nav-content\">\n            <a href=\"#\" class=\"logo\"><span class=\"logo-icon\">✉</span> Email Genie</a>\n            <ul class=\"nav-links\">\n                <li><a href=\"#how-it-works\">How It Works</a></li>\n                <li><a href=\"#features\">Features</a></li>\n                <li><a href=\"#signup\" class=\"nav-cta\">Get Started</a></li>\n            </ul>\n            <button class=\"mobile-menu-btn\" onclick=\"toggleMobileNav()\">☰</button>\n        </div>\n    </nav>\n    \n    <div class=\"mobile-nav\" id=\"mobileNav\" style=\"display:none;position:fixed;top:70px;left:0;width:100%;background:rgba(13,11,26,0.98);padding:20px;z-index:999;\">\n        <a href=\"#how-it-works\" onclick=\"closeMobileNav()\">How It Works</a>\n        <a href=\"#features\" onclick=\"closeMobileNav()\">Features</a>\n        <a href=\"#signup\" class=\"nav-cta\" onclick=\"closeMobileNav()\">Get Started</a>\n    </div>\n\n    <section class=\"hero\">\n        <div class=\"hero-content\">\n            <div class=\"badge\">✨ FREE SERVICE</div>\n            <h1>Never Miss a Message<br>From Inside</h1>\n            <p>Get CorrLinks emails delivered instantly as text messages to any phone. Stay connected when it matters most.</p>\n            \n            <div class=\"price-tag\">FREE<span>/forever</span></div>\n            <p class=\"trial-note\">No credit card. No trial period. No paywalls.</p>\n            \n            <div class=\"cta-group\">\n                <a href=\"#signup\" class=\"btn btn-primary\">Start Now →</a>\n                <a href=\"#how-it-works\" class=\"btn btn-secondary\">See How It Works</a>\n            </div>\n        </div>\n    </section>\n\n    <section class=\"section\" id=\"how-it-works\">\n        <div class=\"section-title\">\n            <h2>Simple Setup. Instant Delivery.</h2>\n            <p>Three steps to stay connected</p>\n        </div>\n        \n        <div class=\"steps\">\n            <div class=\"step\">\n                <div class=\"step-number\">1</div>\n                <h3>Sign Up & Get Email</h3>\n                <p>Fill out the form below and receive your unique bridge email address instantly.</p>\n            </div>\n            <div class=\"step\">\n                <div class=\"step-number\">2</div>\n                <h3>Add to CorrLinks</h3>\n                <p>Add your bridge email as a contact in your CorrLinks account.</p>\n            </div>\n            <div class=\"step\">\n                <div class=\"step-number\">3</div>\n                <h3>Receive Texts</h3>\n                <p>Every email from your contact arrives as a text message in minutes.</p>\n            </div>\n        </div>\n    </section>\n\n    <section class=\"features\" id=\"features\">\n        <div class=\"features-grid\">\n            <div class=\"feature\">\n                <div class=\"feature-icon\">⚡</div>\n                <div>\n                    <h3>Instant Delivery</h3>\n                    <p>Messages forwarded within minutes. No delays, no waiting.</p>\n                </div>\n            </div>\n            <div class=\"feature\">\n                <div class=\"feature-icon\">📵</div>\n                <div>\n                    <h3>Works on Any Phone</h3>\n                    <p>Flip phones, smartphones, even pagers. If it gets texts, it works.</p>\n                </div>\n            </div>\n            <div class=\"feature\">\n                <div class=\"feature-icon\">🔒</div>\n                <div>\n                    <h3>Secure & Private</h3>\n                    <p>Your data is never sold or shared. Messages logged for your records.</p>\n                </div>\n            </div>\n            <div class=\"feature\">\n                <div class=\"feature-icon\">📧</div>\n                <div>\n                    <h3>Unique Email Address</h3>\n                    <p>Private bridge email for each user. No shared inboxes.</p>\n                </div>\n            </div>\n            <div class=\"feature\">\n                <div class=\"feature-icon\">⚙️</div>\n                <div>\n                    <h3>Zero Maintenance</h3>\n                    <p>Set it once, it works forever. No app to install or update.</p>\n                </div>\n            </div>\n            <div class=\"feature\">\n                <div class=\"feature-icon\">💰</div>\n                <div>\n                    <h3>Completely Free</h3>\n                    <p>No credit card needed. No hidden fees. No subscriptions.</p>\n                </div>\n            </div>\n        </div>\n    </section>\n\n    <section class=\"section signup-section\" id=\"signup\">\n        <div class=\"signup-container\">\n            <div class=\"section-title\">\n                <h2>Get Your Bridge Email Now</h2>\n                <p>Takes 30 seconds. Completely free.</p>\n            </div>\n            \n            <div class=\"form-card\">\n                <div data-fs-success class=\"success-message\">\n                    <h3>✅ Welcome to Email Genie!</h3>\n                    <p>Your bridge email has been created. Check your email for confirmation.</p>\n                    <div class=\"bridge-email\" id=\"bridgeEmailDisplay\" onclick=\"copyToClipboard()\">Click to copy bridge email</div>\n                </div>\n\n                <form id=\"signupForm\" data-fs-form>\n                    <div data-fs-error></div>\n                    \n                    <div class=\"form-row\">\n                        <div class=\"form-group\">\n                            <label for=\"name\">Full Name *</label>\n                            <input type=\"text\" id=\"name\" name=\"name\" required placeholder=\"Jane Doe\" data-fs-field />\n                            <span data-fs-error=\"name\" class=\"error-message\"></span>\n                        </div>\n                        <div class=\"form-group\">\n                            <label for=\"email\">Email Address *</label>\n                            <input type=\"email\" id=\"email\" name=\"email\" required placeholder=\"jane@example.com\" data-fs-field />\n                            <span data-fs-error=\"email\" class=\"error-message\"></span>\n                        </div>\n                    </div>\n                    \n                    <div class=\"form-row\">\n                        <div class=\"form-group\">\n                            <label for=\"phone\">Phone Number *</label>\n                            <input type=\"tel\" id=\"phone\" name=\"phone\" required placeholder=\"(555) 123-4567\" data-fs-field />\n                            <span data-fs-error=\"phone\" class=\"error-message\"></span>\n                        </div>\n                        <div class=\"form-group\">\n                            <label for=\"carrier\">Carrier *</label>\n                            <select id=\"carrier\" name=\"carrier\" required data-fs-field>\n                                <option value=\"\">Select carrier</option>\n                                <option value=\"verizon\">Verizon</option>\n                                <option value=\"att\">AT&T</option>\n                                <option value=\"tmobile\">T-Mobile</option>\n                                <option value=\"sprint\">Sprint</option>\n                                <option value=\"cricket\">Cricket</option>\n                                <option value=\"boost\">Boost Mobile</option>\n                                <option value=\"metro\">Metro PCS</option>\n                                <option value=\"straighttalk\">Straight Talk</option>\n                                <option value=\"uscellular\">US Cellular</option>\n                                <option value=\"other\">Other</option>\n                            </select>\n                            <span data-fs-error=\"carrier\" class=\"error-message\"></span>\n                        </div>\n                    </div>\n                    \n                    <div class=\"form-group\">\n                        <label for=\"corrlinks\">Your CorrLinks Email (optional)</label>\n                        <input type=\"email\" id=\"corrlinks\" name=\"corrlinks\" placeholder=\"you@corrlinks.com\" />\n                    </div>\n                    \n                    <div class=\"form-group\">\n                        <label for=\"inmate\">Inmate Name (optional)</label>\n                        <input type=\"text\" id=\"inmate\" name=\"inmate\" placeholder=\"John Smith\" />\n                    </div>\n                    \n                    <div class=\"checkbox-group\">\n                        <input type=\"checkbox\" id=\"consent\" name=\"consent\" required />\n                        <label for=\"consent\">I understand that all messages are subject to monitoring by correctional facility staff and I agree to use this service.</label>\n                    </div>\n                    \n                    <button type=\"submit\" class=\"btn btn-primary submit-btn\" data-fs-submit-btn>Get My Bridge Email →</button>\n                </form>\n            </div>\n        </div>\n    </section>\n\n    <footer>\n        <div class=\"footer-content\">\n            <div class=\"footer-logo\"><span class=\"logo-icon\" style=\"display:inline-flex;width:32px;height:32px;font-size:18px;vertical-align:middle;margin-right:8px;\">✉</span>Email Genie</div>\n            <div class=\"footer-links\">\n                <a href=\"#how-it-works\">How It Works</a>\n                <a href=\"#features\">Features</a>\n                <a href=\"mailto:support@emailgenie.app\">Support</a>\n            </div>\n            <p class=\"disclaimer\">\n                Email Genie is an independent service not affiliated with CorrLinks or the Federal Bureau of Prisons.<br>\n                All messages are subject to monitoring by correctional facility staff.<br><br>\n                &copy; 2025 Email Genie. All rights reserved.\n            </p>\n        </div>\n    </footer>\n\n    <script>\n        // Carrier SMS gateways\n        const carrierGateways = {\n            verizon: 'vtext.com',\n            att: 'txt.att.net',\n            tmobile: 'tmomail.net',\n            sprint: 'messaging.sprintpcs.com',\n            cricket: 'sms.cricketwireless.net',\n            boost: 'sms.myboostmobile.com',\n            metro: 'mymetropcs.com',\n            straighttalk: 'vtext.com',\n            uscellular: 'email.uscc.net',\n            other: 'vtext.com'\n        };\n        \n        let generatedBridgeEmail = '';\n        \n        function generateBridgeEmail() {\n            const timestamp = Date.now().toString(36);\n            const random = Math.random().toString(36).substr(2, 5);\n            return `user-${timestamp}-${random}@bridge.emailgenie.app`;\n        }\n        \n        function formatPhone(phone) {\n            return phone.replace(/\\D/g, '');\n        }\n        \n        function getSmsEmail(phone, carrier) {\n            const cleanPhone = formatPhone(phone);\n            const gateway = carrierGateways[carrier] || carrierGateways.other;\n            return `${cleanPhone}@${gateway}`;\n        }\n        \n        function copyToClipboard() {\n            if (generatedBridgeEmail) {\n                navigator.clipboard.writeText(generatedBridgeEmail).then(() => {\n                    alert('Bridge email copied to clipboard!');\n                }).catch(err => {\n                    console.log('Copy failed:', err);\n                });\n            }\n        }\n        \n        // Mobile nav\n        function toggleMobileNav() {\n            const nav = document.getElementById('mobileNav');\n            nav.style.display = nav.style.display === 'none' ? 'block' : 'none';\n        }\n        \n        function closeMobileNav() {\n            document.getElementById('mobileNav').style.display = 'none';\n        }\n        \n        // Initialize Formspree\n        window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };\n        \n        // Hook into form submission to add bridge email\n        document.getElementById('signupForm').addEventListener('submit', function(e) {\n            generatedBridgeEmail = generateBridgeEmail();\n            const phone = document.getElementById('phone').value;\n            const carrier = document.getElementById('carrier').value;\n            const smsEmail = getSmsEmail(phone, carrier);\n            \n            // Add hidden fields to form\n            const bridgeField = document.createElement('input');\n            bridgeField.type = 'hidden';\n            bridgeField.name = 'bridge_email';\n            bridgeField.value = generatedBridgeEmail;\n            \n            const smsEmailField = document.createElement('input');\n            smsEmailField.type = 'hidden';\n            smsEmailField.name = 'sms_email';\n            smsEmailField.value = smsEmail;\n            \n            const timestampField = document.createElement('input');\n            timestampField.type = 'hidden';\n            timestampField.name = 'timestamp';\n            timestampField.value = new Date().toISOString();\n            \n            this.appendChild(bridgeField);\n            this.appendChild(smsEmailField);\n            this.appendChild(timestampField);\n            \n            // Display the bridge email immediately\n            setTimeout(() => {\n                const displayEl = document.getElementById('bridgeEmailDisplay');\n                if (displayEl) {\n                    displayEl.textContent = generatedBridgeEmail;\n                    displayEl.style.cursor = 'pointer';\n                }\n            }, 500);\n        });\n        \n        // Initialize Formspree form\n        formspree('initForm', {\n            formElement: '#signupForm',\n            formId: 'xlgvvvke'\n        });\n        \n        // Smooth scroll\n        document.querySelectorAll('a[href^=\"#\"]').forEach(anchor => {\n            anchor.addEventListener('click', function(e) {\n                e.preventDefault();\n                const target = document.querySelector(this.getAttribute('href'));\n                if (target) {\n                    target.scrollIntoView({\n                        behavior: 'smooth'\n                    });\n                }\n            });\n        });\n    </script>\n    <script src=\"https://unpkg.com/@formspree/ajax@1\" defer></script>\n</body>\n</html>
