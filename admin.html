@@ -588,18 +588,15 @@
 
         function loadDashboard() {
             try {
-                // Get all requests from localStorage
                 const pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
                 const active = JSON.parse(localStorage.getItem('emailGenieActiveUsers') || '[]');
                 
                 allUsers = [...pending, ...active];
                 
-                // Update stats
                 document.getElementById('pendingCount').textContent = pending.length;
                 document.getElementById('activeCount').textContent = active.length;
                 document.getElementById('totalCount').textContent = allUsers.length;
                 
-                // Render tables
                 renderPendingTable(pending);
                 renderActiveTable(active);
                 renderAllTable(allUsers);
@@ -717,11 +714,9 @@
             document.getElementById('modalEmail').value = currentUser.email;
             document.getElementById('modalPhone').value = currentUser.phone;
             
-            // Generate bridge email if not already generated
             const bridgeEmail = currentUser.bridge_email || generateBridgeEmail();
             document.getElementById('bridgeEmailDisplay').textContent = bridgeEmail;
             
-            // Pre-fill message template
             const message = `Hi ${currentUser.name},
 
 Your Email Genie bridge email is ready:
@@ -751,7 +746,7 @@ Email Genie Team`;
         function generateBridgeEmail() {
             const timestamp = Date.now().toString(36);
             const random = Math.random().toString(36).substr(2, 5);
-            return `user-${timestamp}-${random}@bridge.emailgenie.app`;
+            return `user-${timestamp}-${random}@emailgenie.org`;
         }
 
         function copyBridgeEmail() {
@@ -787,7 +782,6 @@ Email Genie Team`;
             
             const bridgeEmail = document.getElementById('bridgeEmailDisplay').textContent;
             
-            // Mark user as active
             const updatedUser = {
                 ...currentUser,
                 bridge_email: bridgeEmail,
@@ -795,12 +789,10 @@ Email Genie Team`;
                 activated_at: new Date().toISOString()
             };
             
-            // Remove from pending
             let pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
             pending = pending.filter(u => u.id !== currentUser.id);
             localStorage.setItem('emailGeniePendingRequests', JSON.stringify(pending));
             
-            // Add to active
             let active = JSON.parse(localStorage.getItem('emailGenieActiveUsers') || '[]');
             active.push(updatedUser);
             localStorage.setItem('emailGenieActiveUsers', JSON.stringify(active));
@@ -827,7 +819,6 @@ Email Genie Team`;
             return div.innerHTML;
         }
 
-        // Load on startup
         document.getElementById('adminPass')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
         });
