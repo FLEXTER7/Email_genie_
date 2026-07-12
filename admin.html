@@ -44,7 +44,7 @@
             margin-bottom: 30px;
         }
         
-        input {
+        input[type="password"] {
             width: 100%;
             padding: 14px;
             margin-bottom: 15px;
@@ -55,7 +55,7 @@
             font-size: 15px;
         }
         
-        input:focus {
+        input[type="password"]:focus {
             outline: none;
             border-color: #a855f7;
         }
@@ -137,8 +137,8 @@
             color: #fff;
         }
         
-        .stat-value.revenue { color: #34d399; }
         .stat-value.pending { color: #f5b642; }
+        .stat-value.active { color: #34d399; }
         
         .tabs {
             display: flex;
@@ -202,29 +202,16 @@
         
         .search-box input {
             width: 250px;
-            margin: 0;
-        }
-        
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            padding: 0 20px 15px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-btn {
-            padding: 8px 16px;
+            padding: 10px 15px;
             background: #0d0b1a;
             border: 1px solid #2d2754;
-            color: #9590a8;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
         }
         
-        .filter-btn.active {
-            background: #a855f7;
-            color: #fff;
+        .search-box input:focus {
+            outline: none;
             border-color: #a855f7;
         }
         
@@ -264,24 +251,14 @@
             font-weight: 500;
         }
         
-        .status.active {
-            background: rgba(52, 211, 153, 0.1);
-            color: #34d399;
-        }
-        
         .status.pending {
             background: rgba(245, 182, 66, 0.1);
             color: #f5b642;
         }
         
-        .status.inactive {
-            background: rgba(255, 77, 77, 0.1);
-            color: #ff4d4d;
-        }
-        
-        .status.trial {
-            background: rgba(168, 85, 247, 0.1);
-            color: #c084fc;
+        .status.active {
+            background: rgba(52, 211, 153, 0.1);
+            color: #34d399;
         }
         
         .action-btns {
@@ -296,14 +273,16 @@
             cursor: pointer;
             border: none;
             width: auto;
+            color: #fff;
+            font-weight: 600;
         }
         
-        .btn-pay {
+        .btn-approve {
             background: #34d399;
             color: #000;
         }
         
-        .btn-edit {
+        .btn-copy {
             background: #2d2754;
             color: #fff;
         }
@@ -334,7 +313,7 @@
             border-radius: 12px;
             padding: 30px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -372,39 +351,33 @@
             font-size: 14px;
         }
         
-        .payment-methods {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .payment-method {
-            padding: 15px;
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
             background: #0d0b1a;
-            border: 2px solid #2d2754;
+            border: 1px solid #2d2754;
             border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            color: #fff;
+            font-size: 14px;
+            font-family: monospace;
         }
         
-        .payment-method:hover, .payment-method.selected {
-            border-color: #34d399;
-            background: rgba(52, 211, 153, 0.05);
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #a855f7;
         }
         
-        .payment-method .icon {
-            font-size: 24px;
-            margin-bottom: 5px;
+        .bridge-email-display {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid #a855f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-break: break-all;
+            color: #c084fc;
+            font-family: monospace;
+            font-weight: 600;
         }
-        
-        .payment-method .name {
-            font-size: 12px;
-            color: #9590a8;
-        }
-        
-        .hidden { display: none !important; }
         
         .empty-state {
             text-align: center;
@@ -412,11 +385,21 @@
             color: #9590a8;
         }
         
+        .copy-feedback {
+            display: none;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid #34d399;
+            color: #34d399;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr; }
             .search-box input { width: 100%; }
             .section-header { flex-direction: column; align-items: stretch; }
-            .filter-buttons { overflow-x: auto; }
             table { font-size: 12px; }
             th, td { padding: 10px; }
         }
@@ -426,84 +409,49 @@
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
             <h1>Email Genie Admin</h1>
-            <p>Enter credentials to access dashboard</p>
+            <p>Enter your admin password</p>
             <input type="password" id="adminPass" placeholder="Admin Password">
             <button onclick="login()">Access Dashboard</button>
             <p style="color: #666; font-size: 12px; margin-top: 15px; text-align: center;">
-                Default: admin123 (change in Supabase)
+                Default: admin123
             </p>
         </div>
     </div>
 
     <div class="dashboard" id="dashboard">
         <div class="header">
-            <h1>Email Genie Dashboard</h1>
+            <h1>Email Genie Admin Dashboard</h1>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
+                <h3>Pending Requests</h3>
+                <div class="stat-value pending" id="pendingCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Users</h3>
+                <div class="stat-value active" id="activeCount">0</div>
+            </div>
+            <div class="stat-card">
                 <h3>Total Users</h3>
-                <div class="stat-value" id="totalUsers">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>Active Subscriptions</h3>
-                <div class="stat-value" id="activeUsers">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>Pending Payment</h3>
-                <div class="stat-value pending" id="pendingUsers">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>Monthly Revenue</h3>
-                <div class="stat-value revenue" id="revenue">$0</div>
+                <div class="stat-value" id="totalCount">0</div>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('users')">All Users</button>
-            <button class="tab" onclick="switchTab('pending')">Pending Payment</button>
-            <button class="tab" onclick="switchTab('trials')">Free Trials</button>
+            <button class="tab active" onclick="switchTab('pending')">Pending Requests</button>
+            <button class="tab" onclick="switchTab('active')">Active Users</button>
+            <button class="tab" onclick="switchTab('all')">All Users</button>
         </div>
 
-        <div class="section-content active" id="usersTab">
+        <div class="section-content active" id="pendingTab">
             <div class="users-section">
                 <div class="section-header">
-                    <h2>All Users</h2>
+                    <h2>Pending Requests</h2>
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search users..." onkeyup="searchUsers()">
+                        <input type="text" id="searchPending" placeholder="Search..." onkeyup="filterTable('pending')">
                     </div>
-                </div>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterUsers('all')">All</button>
-                    <button class="filter-btn" onclick="filterUsers('active')">Active</button>
-                    <button class="filter-btn" onclick="filterUsers('pending')">Pending</button>
-                    <button class="filter-btn" onclick="filterUsers('trial')">Trial</button>
-                    <button class="filter-btn" onclick="filterUsers('inactive')">Inactive</button>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Bridge Email</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTable">
-                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="section-content" id="pendingTab">
-            <div class="users-section">
-                <div class="section-header">
-                    <h2>Pending Payment</h2>
-                    <p style="color: #9590a8; font-size: 14px;">Users who need to pay $15 to activate</p>
                 </div>
                 <table>
                     <thead>
@@ -511,121 +459,117 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Days Since Signup</th>
+                            <th>Carrier</th>
+                            <th>Requested</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="pendingTable">
-                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>
+                        <tr><td colspan="6" class="empty-state">No pending requests</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="section-content" id="trialsTab">
+        <div class="section-content" id="activeTab">
             <div class="users-section">
                 <div class="section-header">
-                    <h2>Free Trials</h2>
-                    <p style="color: #9590a8; font-size: 14px;">7-day free trials</p>
+                    <h2>Active Users</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchActive" placeholder="Search..." onkeyup="filterTable('active')">
+                    </div>
                 </div>
                 <table>
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Days Left</th>
-                            <th>Status</th>
+                            <th>Bridge Email</th>
+                            <th>Phone</th>
+                            <th>Activated</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="trialsTable">
-                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>
+                    <tbody id="activeTable">
+                        <tr><td colspan="6" class="empty-state">No active users</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-content" id="allTab">
+            <div class="users-section">
+                <div class="section-header">
+                    <h2>All Users</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchAll" placeholder="Search..." onkeyup="filterTable('all')">
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Phone</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allTable">
+                        <tr><td colspan="6" class="empty-state">No users</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="paymentModal">
+    <div class="modal" id="approveModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>💳 Record Payment</h3>
+                <h3>Approve & Generate Bridge Email</h3>
                 <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
-            <div id="paymentUserInfo" style="margin-bottom: 20px; padding: 15px; background: #0d0b1a; border-radius: 8px;">
-                <p style="color: #9590a8; font-size: 14px;">User: <span id="payUserName" style="color: #fff; font-weight: 600;"></span></p>
-                <p style="color: #9590a8; font-size: 14px;">Amount: <span style="color: #34d399; font-weight: 600;">$15.00</span></p>
-            </div>
+            <div id="copyFeedback" class="copy-feedback">✓ Copied to clipboard!</div>
+            
             <div class="form-group">
-                <label>Payment Method</label>
-                <div class="payment-methods">
-                    <div class="payment-method" onclick="selectPayment('cashapp')">
-                        <div class="icon">💵</div>
-                        <div class="name">Cash App</div>
-                    </div>
-                    <div class="payment-method" onclick="selectPayment('venmo')">
-                        <div class="icon">💸</div>
-                        <div class="name">Venmo</div>
-                    </div>
-                    <div class="payment-method" onclick="selectPayment('paypal')">
-                        <div class="icon">🅿️</div>
-                        <div class="name">PayPal</div>
-                    </div>
-                    <div class="payment-method" onclick="selectPayment('zelle')">
-                        <div class="icon">🏦</div>
-                        <div class="name">Zelle</div>
-                    </div>
-                    <div class="payment-method" onclick="selectPayment('other')">
-                        <div class="icon">💰</div>
-                        <div class="name">Other</div>
-                    </div>
-                </div>
+                <label>User Name</label>
+                <input type="text" id="modalName" readonly>
             </div>
+            
             <div class="form-group">
-                <label>Transaction ID / Note (optional)</label>
-                <input type="text" id="transactionId" placeholder="e.g., Cash App username or confirmation #">
+                <label>Email</label>
+                <input type="email" id="modalEmail" readonly>
             </div>
+            
             <div class="form-group">
-                <label>Notes (optional)</label>
-                <input type="text" id="paymentNotes" placeholder="Any additional info...">
+                <label>Phone</label>
+                <input type="tel" id="modalPhone" readonly>
             </div>
-            <button onclick="confirmPayment()" style="width: 100%;">✅ Confirm Payment Received</button>
+            
+            <div class="form-group">
+                <label>Generated Bridge Email</label>
+                <div class="bridge-email-display" id="bridgeEmailDisplay"></div>
+                <button onclick="copyBridgeEmail()" style="width: 100%; margin-top: 10px;">📋 Copy Bridge Email</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Message to Send (customize if needed)</label>
+                <textarea id="messageTemplate" rows="6" style="resize: none;"></textarea>
+                <button onclick="copyMessage()" style="width: 100%; margin-top: 10px;">📋 Copy Message</button>
+            </div>
+            
+            <button onclick="confirmApprove()" style="width: 100%; background: #34d399; color: #000; margin-bottom: 10px;">✓ Mark as Active & Save</button>
+            <button onclick="closeModal()" style="width: 100%; background: transparent; border: 1px solid #2d2754; color: #9590a8;">Cancel</button>
         </div>
     </div>
 
     <script>
-        // Supabase configuration - YOUR CREDENTIALS ARE ALREADY HERE!
-        const SUPABASE_URL = 'https://nnqarkxxlcqjdfgiruaj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ucWFya3h4bGNxamRmZ2lydWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDc1ODksImV4cCI6MjA4NzMyMzU4OX0.dCgEh5Z6sMMjA4d8tSa7jeLjcSJ0ce42UDpVl-yBR9I';
         const ADMIN_PASSWORD = 'admin123';
-        
         let allUsers = [];
         let currentUser = null;
-        let selectedPaymentMethod = null;
 
-        // Fetch helper for Supabase
-        async function supabaseFetch(table, options = {}) {
-            const url = `${SUPABASE_URL}/rest/v1/${table}`;
-            const headers = {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Content-Type': 'application/json'
-            };
-            
-            const response = await fetch(url, {
-                ...options,
-                headers: { ...headers, ...options.headers }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Request failed');
-            }
-            
-            return response.json();
-        }
-
-        async function login() {
+        function login() {
             const pass = document.getElementById('adminPass').value;
             
             if (pass !== ADMIN_PASSWORD) {
@@ -642,88 +586,51 @@
             location.reload();
         }
 
-        async function loadDashboard() {
+        function loadDashboard() {
             try {
-                const users = await supabaseFetch('users?order=created_at.desc');
-                allUsers = users || [];
+                // Get all requests from localStorage
+                const pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
+                const active = JSON.parse(localStorage.getItem('emailGenieActiveUsers') || '[]');
                 
-                const activeUsers = allUsers.filter(u => u.status === 'active' && u.plan === 'basic');
-                const pendingUsers = allUsers.filter(u => u.status === 'pending');
-                const trialUsers = allUsers.filter(u => u.plan === 'trial');
+                allUsers = [...pending, ...active];
                 
-                document.getElementById('totalUsers').textContent = allUsers.length;
-                document.getElementById('activeUsers').textContent = activeUsers.length;
-                document.getElementById('pendingUsers').textContent = pendingUsers.length;
-                document.getElementById('revenue').textContent = '$' + (activeUsers.length * 15);
+                // Update stats
+                document.getElementById('pendingCount').textContent = pending.length;
+                document.getElementById('activeCount').textContent = active.length;
+                document.getElementById('totalCount').textContent = allUsers.length;
                 
-                renderUsersTable(allUsers);
-                renderPendingTable(pendingUsers);
-                renderTrialsTable(trialUsers);
+                // Render tables
+                renderPendingTable(pending);
+                renderActiveTable(active);
+                renderAllTable(allUsers);
                 
             } catch (err) {
                 console.error('Error loading dashboard:', err);
-                alert('Error loading data: ' + err.message);
+                alert('Error loading data');
             }
-        }
-
-        function getUserStatus(user) {
-            if (user.status === 'inactive') return { class: 'inactive', label: 'Inactive' };
-            if (user.payment_status === 'paid') return { class: 'active', label: 'Active' };
-            if (user.plan === 'trial') {
-                const daysSince = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
-                if (daysSince <= 7) return { class: 'trial', label: 'Trial' };
-            }
-            return { class: 'pending', label: 'Payment Due' };
-        }
-
-        function renderUsersTable(users) {
-            const tbody = document.getElementById('usersTable');
-            
-            if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users yet</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = users.map(user => {
-                const status = getUserStatus(user);
-                return `
-                    <tr>
-                        <td><strong>${escapeHtml(user.name)}</strong></td>
-                        <td><code style="background: #0d0b1a; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${escapeHtml(user.bridge_email)}</code></td>
-                        <td>${escapeHtml(user.phone)}</td>
-                        <td><span class="status ${status.class}">${status.label}</span></td>
-                        <td>${formatDate(user.created_at)}</td>
-                        <td>
-                            <div class="action-btns">
-                                ${status.class === 'pending' ? `<button class="action-btn btn-pay" onclick="openPaymentModal('${user.id}')">Mark Paid</button>` : ''}
-                                <button class="action-btn btn-edit" onclick="editUser('${user.id}')">Edit</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         }
 
         function renderPendingTable(users) {
             const tbody = document.getElementById('pendingTable');
             
             if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No pending payments</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No pending requests</td></tr>';
                 return;
             }
             
             tbody.innerHTML = users.map(user => {
-                const daysSince = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
+                const date = new Date(user.created_at).toLocaleDateString();
                 return `
                     <tr>
                         <td><strong>${escapeHtml(user.name)}</strong></td>
                         <td>${escapeHtml(user.email)}</td>
                         <td>${escapeHtml(user.phone)}</td>
-                        <td>${daysSince} days</td>
+                        <td>${escapeHtml(user.carrier)}</td>
+                        <td>${date}</td>
                         <td>
                             <div class="action-btns">
-                                <button class="action-btn btn-pay" onclick="openPaymentModal('${user.id}')">✅ Mark as Paid</button>
-                                <button class="action-btn btn-delete" onclick="deactivateUser('${user.id}')">Deactivate</button>
+                                <button class="action-btn btn-approve" onclick="openApproveModal('${user.id}')">✓ Approve</button>
+                                <button class="action-btn btn-delete" onclick="deleteRequest('${user.id}')">✕ Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -731,27 +638,54 @@
             }).join('');
         }
 
-        function renderTrialsTable(users) {
-            const tbody = document.getElementById('trialsTable');
+        function renderActiveTable(users) {
+            const tbody = document.getElementById('activeTable');
             
             if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No active trials</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No active users</td></tr>';
                 return;
             }
             
             tbody.innerHTML = users.map(user => {
-                const daysSince = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
-                const daysLeft = Math.max(0, 7 - daysSince);
+                const date = new Date(user.activated_at).toLocaleDateString();
                 return `
                     <tr>
                         <td><strong>${escapeHtml(user.name)}</strong></td>
                         <td>${escapeHtml(user.email)}</td>
-                        <td>${daysLeft} days left</td>
-                        <td><span class="status trial">Trial</span></td>
+                        <td><code style="background: #0d0b1a; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${escapeHtml(user.bridge_email)}</code></td>
+                        <td>${escapeHtml(user.phone)}</td>
+                        <td>${date}</td>
                         <td>
-                            <div class="action-btns">
-                                <button class="action-btn btn-pay" onclick="openPaymentModal('${user.id}')">Upgrade to Paid</button>
-                            </div>
+                            <button class="action-btn btn-copy" onclick="copyToClipboard('${user.bridge_email}')">📋 Copy Email</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderAllTable(users) {
+            const tbody = document.getElementById('allTable');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => {
+                const date = new Date(user.created_at).toLocaleDateString();
+                const status = user.bridge_email ? 'Active' : 'Pending';
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(user.name)}</strong></td>
+                        <td>${escapeHtml(user.email)}</td>
+                        <td><span class="status ${status.toLowerCase()}">${status}</span></td>
+                        <td>${escapeHtml(user.phone)}</td>
+                        <td>${date}</td>
+                        <td>
+                            ${status === 'Pending' ? 
+                                `<button class="action-btn btn-approve" onclick="openApproveModal('${user.id}')">Approve</button>` :
+                                `<button class="action-btn btn-copy" onclick="copyToClipboard('${user.bridge_email}')">Copy</button>`
+                            }
                         </td>
                     </tr>
                 `;
@@ -765,108 +699,125 @@
             document.getElementById(tabName + 'Tab').classList.add('active');
         }
 
-        function filterUsers(filter) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        function filterTable(type) {
+            const query = document.getElementById(`search${type.charAt(0).toUpperCase() + type.slice(1)}`).value.toLowerCase();
+            const rows = document.querySelectorAll(`#${type}Table tr`);
             
-            let filtered = allUsers;
-            if (filter !== 'all') {
-                filtered = allUsers.filter(u => {
-                    const status = getUserStatus(u);
-                    return status.class === filter;
-                });
-            }
-            renderUsersTable(filtered);
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
         }
 
-        function searchUsers() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allUsers.filter(u => 
-                u.name.toLowerCase().includes(query) ||
-                u.email.toLowerCase().includes(query) ||
-                u.phone.includes(query) ||
-                u.bridge_email.toLowerCase().includes(query)
-            );
-            renderUsersTable(filtered);
-        }
-
-        function openPaymentModal(userId) {
+        function openApproveModal(userId) {
             currentUser = allUsers.find(u => u.id === userId);
             if (!currentUser) return;
-            document.getElementById('payUserName').textContent = currentUser.name;
-            document.getElementById('paymentModal').classList.add('active');
+            
+            document.getElementById('modalName').value = currentUser.name;
+            document.getElementById('modalEmail').value = currentUser.email;
+            document.getElementById('modalPhone').value = currentUser.phone;
+            
+            // Generate bridge email if not already generated
+            const bridgeEmail = currentUser.bridge_email || generateBridgeEmail();
+            document.getElementById('bridgeEmailDisplay').textContent = bridgeEmail;
+            
+            // Pre-fill message template
+            const message = `Hi ${currentUser.name},
+
+Your Email Genie bridge email is ready:
+
+🌉 Bridge Email: ${bridgeEmail}
+
+📋 How to use:
+1. Add this email address as a contact in your CorrLinks account
+2. Any emails sent to this address will arrive as text messages to your phone
+3. You can reply to texts and they'll be forwarded back through CorrLinks
+
+Questions? Reply to this email.
+
+Best,
+Email Genie Team`;
+            
+            document.getElementById('messageTemplate').value = message;
+            document.getElementById('approveModal').classList.add('active');
         }
 
         function closeModal() {
-            document.getElementById('paymentModal').classList.remove('active');
+            document.getElementById('approveModal').classList.remove('active');
+            document.getElementById('copyFeedback').style.display = 'none';
             currentUser = null;
-            selectedPaymentMethod = null;
-            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
         }
 
-        function selectPayment(method) {
-            selectedPaymentMethod = method;
-            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+        function generateBridgeEmail() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 5);
+            return `user-${timestamp}-${random}@bridge.emailgenie.app`;
         }
 
-        async function confirmPayment() {
-            if (!currentUser || !selectedPaymentMethod) {
-                alert('Please select a payment method');
-                return;
-            }
+        function copyBridgeEmail() {
+            const email = document.getElementById('bridgeEmailDisplay').textContent;
+            navigator.clipboard.writeText(email).then(() => {
+                showCopyFeedback();
+            });
+        }
+
+        function copyMessage() {
+            const message = document.getElementById('messageTemplate').value;
+            navigator.clipboard.writeText(message).then(() => {
+                showCopyFeedback();
+            });
+        }
+
+        function showCopyFeedback() {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.style.display = 'block';
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 2000);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+
+        function confirmApprove() {
+            if (!currentUser) return;
             
-            try {
-                // Update user status
-                await supabaseFetch(`users?id=eq.${currentUser.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({
-                        status: 'active',
-                        plan: 'basic',
-                        payment_status: 'paid'
-                    })
-                });
-                
-                // Record payment
-                await supabaseFetch('payments', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        user_id: currentUser.id,
-                        amount: 15,
-                        payment_method: selectedPaymentMethod,
-                        transaction_id: document.getElementById('transactionId').value || null,
-                        notes: document.getElementById('paymentNotes').value || null
-                    })
-                });
-                
-                closeModal();
-                loadDashboard();
-                alert('Payment recorded! User activated.');
-                
-            } catch (err) {
-                console.error('Error recording payment:', err);
-                alert('Error recording payment: ' + err.message);
-            }
-        }
-
-        async function deactivateUser(userId) {
-            if (!confirm('Are you sure you want to deactivate this user?')) return;
+            const bridgeEmail = document.getElementById('bridgeEmailDisplay').textContent;
             
-            try {
-                await supabaseFetch(`users?id=eq.${userId}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'inactive' })
-                });
-                loadDashboard();
-                
-            } catch (err) {
-                console.error('Error deactivating user:', err);
-                alert('Error deactivating user: ' + err.message);
-            }
+            // Mark user as active
+            const updatedUser = {
+                ...currentUser,
+                bridge_email: bridgeEmail,
+                status: 'active',
+                activated_at: new Date().toISOString()
+            };
+            
+            // Remove from pending
+            let pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
+            pending = pending.filter(u => u.id !== currentUser.id);
+            localStorage.setItem('emailGeniePendingRequests', JSON.stringify(pending));
+            
+            // Add to active
+            let active = JSON.parse(localStorage.getItem('emailGenieActiveUsers') || '[]');
+            active.push(updatedUser);
+            localStorage.setItem('emailGenieActiveUsers', JSON.stringify(active));
+            
+            closeModal();
+            loadDashboard();
+            alert('✓ User approved! Bridge email: ' + bridgeEmail + '\n\nManually send them the message above.');
         }
 
-        function editUser(userId) {
-            alert('Edit feature coming soon. For now, deactivate and have them re-signup if changes needed.');
+        function deleteRequest(userId) {
+            if (!confirm('Delete this request?')) return;
+            
+            let pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
+            pending = pending.filter(u => u.id !== userId);
+            localStorage.setItem('emailGeniePendingRequests', JSON.stringify(pending));
+            
+            loadDashboard();
         }
 
         function escapeHtml(text) {
@@ -876,15 +827,7 @@
             return div.innerHTML;
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            return new Date(dateString).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-        }
-
+        // Load on startup
         document.getElementById('adminPass')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
         });
