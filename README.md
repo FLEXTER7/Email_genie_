@@ -39,12 +39,31 @@ npm start                 # http://localhost:3000
 
 ---
 
-## Production Deployment (Railway / Render / Fly.io)
+## Production Deployment (Render)
+
+### Option A — Blueprint (`render.yaml`, recommended)
 
 1. Push this repo to GitHub.
-2. Create a new project on [Railway](https://railway.app) → Deploy from GitHub.
-3. Add all environment variables from the table above in Railway's dashboard.
-4. Your app gets a public URL, e.g. `https://email-genie.up.railway.app`.
+2. In Render, create a new **Blueprint** and select this repository.
+3. Render will read `render.yaml` and create the web service with:
+   - Build command: `npm install`
+   - Start command: `npm start`
+   - `NODE_ENV=production`
+4. Fill in the `sync: false` environment variables in Render before first deploy.
+5. Verify the blueprint-created **Persistent Disk** is enabled (defaulted to 5GB in `render.yaml`) and keep `DB_PATH=/var/data/email-genie.db` for SQLite persistence.
+
+### Option B — Manual Web Service setup
+
+1. Push this repo to GitHub.
+2. In Render, create a new **Web Service** from this repository.
+3. Runtime: **Node**
+4. Build command: `npm install`
+5. Start command: `npm start`
+6. Set `NODE_ENV=production`.
+7. Add all environment variables from the table above.
+8. Add a persistent disk and set `DB_PATH` to the mounted disk path (example: `/var/data/email-genie.db`).
+
+> If you do not use a persistent disk, SQLite data is ephemeral and can be lost after restarts/redeploys.
 
 ---
 
