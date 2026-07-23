@@ -34,6 +34,8 @@ npm start                 # http://localhost:3000
 | `SMTP_PASS` | **yes** | SMTP password |
 | `SMTP_FROM` | no | From address (defaults to `SMTP_USER`) |
 | `DB_PATH` | no | SQLite database path (default: `./data/emailgenie.db`) |
+| `MAILGUN_SIGNING_KEY` | **yes** | Mailgun HTTP webhook signing key — used to verify inbound-email signatures |
+| `CORS_ORIGIN` | **yes** | Allowed CORS origin in production (e.g. `https://emailgenie.org`) or `*` |
 
 ---
 
@@ -121,8 +123,9 @@ server/
   db.js            ← SQLite database layer
   sms.js           ← SMS sending (Twilio + carrier gateway fallback)
   email.js         ← Outbound email (SMTP)
-index.html         ← Public signup page
-admin.html         ← Admin dashboard
+public/
+  index.html       ← Public signup page
+  admin.html       ← Admin dashboard
 .env.example       ← Environment variable template
 data/              ← SQLite database (auto-created, git-ignored)
 ```
