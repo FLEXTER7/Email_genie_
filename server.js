@@ -21,11 +21,13 @@
 
 require('dotenv').config();
 
-const express  = require('express');
-const cors     = require('cors');
-const multer   = require('multer');
-const path     = require('path');
-const crypto   = require('crypto');
+const express    = require('express');
+const cors       = require('cors');
+const multer     = require('multer');
+const path       = require('path');
+const crypto     = require('crypto');
+const twilio     = require('twilio');
+const rateLimit  = require('express-rate-limit');
 
 const db    = require('./server/db');
 const sms   = require('./server/sms');
@@ -74,8 +76,13 @@ function isValidOrigin(value) {
         return false;
     }
 }
+// If CORS_ORIGIN is explicitly set, it must be valid. Fail fast rather than silently falling back.
+if (CORS_ORIGIN_ENV && !isValidOrigin(CORS_ORIGIN_ENV)) {
+    console.error(`FATAL: CORS_ORIGIN is set to an invalid value: "${CORS_ORIGIN_ENV}". Must be '*' or a well-formed URL origin. Exiting.`);
+    process.exit(1);
+}
 // Use the validated env value; fall back to '*' only in non-production.
-const allowedOrigin = CORS_ORIGIN_ENV && isValidOrigin(CORS_ORIGIN_ENV) ? CORS_ORIGIN_ENV : '*';
+const allowedOrigin = CORS_ORIGIN_ENV || '*';
 // Use a callback so we never pass a dynamic string directly as the cors origin option.
 app.use(cors({
     origin(requestOrigin, callback) {
@@ -89,11 +96,75 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static HTML files from the project root
-app.use(express.static(path.join(__dirname)));
+// Serve static HTML files from the public directory only
+app.use(express.static(path.join(__dirname, 'public')));
 
-// multer for Mailgun multipart inbound email
+// multer for Mailgun multipart inbound email — use any() so attached files don't cause errors
 const upload = multer();
+
+// ── Rate limiters ──────────────────────────────────────────────────────────
+// Webhook endpoints: generous limit to accommodate legitimate volume bursts,
+// but tight enough to throttle abuse.
+const webhookLimiter = rateLimit({
+    windowMs: 60 * 1000,   // 1 minute
+    max: 120,              // 2 requests/second average
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
+// Admin API: tighter limit to protect authentication endpoints.
+const adminLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
+// ── Webhook verification helpers ───────────────────────────────────────────
+
+const MAILGUN_SIGNING_KEY = process.env.MAILGUN_SIGNING_KEY || '';
+
+/**
+ * Verify a Mailgun inbound-email webhook signature.
+ * https://documentation.mailgun.com/en/latest/user_manual.html#webhooks
+ */
+function verifyMailgunSignature(timestamp, token, signature) {
+    if (!MAILGUN_SIGNING_KEY) {
+        // In production, refuse all requests if the signing key is missing
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[inbound-email] MAILGUN_SIGNING_KEY is not set in production — rejecting request');
+            return false;
+        }
+        return true; // allow bypass in development/test only
+    }
+    const value = timestamp + token;
+    const computed = crypto.createHmac('sha256', MAILGUN_SIGNING_KEY).update(value).digest('hex');
+    try {
+        return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature || ''));
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Verify a Twilio inbound-SMS webhook signature.
+ * https://www.twilio.com/docs/usage/webhooks/webhooks-security
+ */
+function verifyTwilioSignature(req) {
+    if (!TWILIO_AUTH_TOKEN) {
+        // In production, refuse all requests if the auth token is missing
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[sms-reply] TWILIO_AUTH_TOKEN is not set in production — rejecting request');
+            return false;
+        }
+        return true; // allow bypass in development/test only
+    }
+    const signature = req.headers['x-twilio-signature'] || '';
+    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    return twilio.validateRequest(TWILIO_AUTH_TOKEN, signature, url, req.body);
+}
 
 // ── Helper ─────────────────────────────────────────────────────────────────
 function generateBridgeEmail() {
@@ -115,6 +186,12 @@ app.post('/api/signup', (req, res) => {
 
         if (!name || !userEmail || !phone || !carrier) {
             return res.status(400).json({ error: 'name, email, phone, and carrier are required.' });
+        }
+
+        // Validate phone: must be a 10-digit US number after stripping non-digits
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.length !== 10) {
+            return res.status(400).json({ error: 'phone must be a 10-digit US number.' });
         }
 
         const id = Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
@@ -153,8 +230,15 @@ app.post('/api/signup', (req, res) => {
 //   PHONEBOOK ADD [name] [phone] — save a contact
 //   PHONEBOOK REMOVE [phone]    — remove a contact
 //
-app.post('/webhooks/inbound-email', upload.none(), async (req, res) => {
+app.post('/webhooks/inbound-email', webhookLimiter, upload.any(), async (req, res) => {
     try {
+        // Verify Mailgun webhook signature
+        const { timestamp, token, signature } = req.body;
+        if (MAILGUN_SIGNING_KEY && !verifyMailgunSignature(timestamp, token, signature)) {
+            console.warn('[inbound-email] Invalid Mailgun signature — request rejected');
+            return res.status(403).send('Forbidden');
+        }
+
         const recipient = (req.body.recipient || '').toLowerCase().trim();
         const sender    = sanitizeText(req.body.sender || req.body.from || '(unknown)', 100);
         const subject   = sanitizeText(req.body.subject || '(no subject)', 200);
@@ -272,8 +356,14 @@ receive, so prison staff sees a real name instead of a number.`;
 //   Phone Numbers → Messaging → "A message comes in" webhook:
 //   POST https://your-domain.com/webhooks/sms-reply
 //
-app.post('/webhooks/sms-reply', async (req, res) => {
+app.post('/webhooks/sms-reply', webhookLimiter, async (req, res) => {
     try {
+        // Verify Twilio webhook signature
+        if (TWILIO_AUTH_TOKEN && !verifyTwilioSignature(req)) {
+            console.warn('[sms-reply] Invalid Twilio signature — request rejected');
+            return res.status(403).type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?><Response></Response>`);
+        }
+
         const fromNumber = (req.body.From || '').replace(/\D/g, '');
         const body       = (req.body.Body || '').trim();
 
@@ -315,6 +405,9 @@ app.post('/webhooks/sms-reply', async (req, res) => {
 });
 
 // ── Contacts / Phonebook API ───────────────────────────────────────────────
+
+// Apply rate limiting to all /api/* routes (they all require admin auth)
+app.use('/api/', adminLimiter);
 
 app.get('/api/contacts/:userId', requireAdmin, (req, res) => {
     const user = db.getUserById(req.params.userId);

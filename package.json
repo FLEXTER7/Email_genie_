@@ -16,6 +16,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
   "bugs": {
     "url": "https://github.com/FLEXTER7/Email_genie_/issues"
   },
@@ -25,6 +28,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.6.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
     "twilio": "^6.0.2"
