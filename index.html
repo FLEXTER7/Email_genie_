@@ -9,16 +9,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary: #a855f7;
-            --primary-dark: #7c3aed;
-            --accent: #f5b642;
-            --bg: #0d0b1a;
-            --surface: #16132a;
-            --border: #2d2754;
-            --text: #e8e4f0;
-            --text-muted: #9590a8;
-            --success: #34d399;
-            --warning: #f5b642;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #f59e0b;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
         
         body {
@@ -34,19 +34,20 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: -1;
-            opacity: 0.4;
-            background: radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(245, 182, 66, 0.1) 0%, transparent 50%);
+            opacity: 0.6;
+            background: radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 50%);
         }
         
         nav {
             position: fixed;
             top: 0; width: 100%;
-            background: rgba(13, 11, 26, 0.92);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             z-index: 1000;
             padding: 0 5%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         
         .nav-content {
@@ -95,8 +96,8 @@
         }
         
         .nav-links a:hover {
-            color: #c084fc;
-            background: rgba(168, 85, 247, 0.08);
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.07);
         }
         
         .nav-cta {
@@ -145,7 +146,7 @@
             font-weight: 800;
             line-height: 1.1;
             margin-bottom: 24px;
-            background: linear-gradient(135deg, #fff 0%, #c084fc 50%, var(--accent) 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #2563eb 50%, var(--accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -343,7 +344,7 @@
         }
         
         .comparison-table th {
-            background: #1e1a36;
+            background: #f8fafc;
             color: var(--text-muted);
             font-weight: 600;
             font-size: 14px;
@@ -356,7 +357,7 @@
         }
         
         .check { color: var(--success); font-weight: 700; }
-        .cross { color: #ff4d4d; }
+        .cross { color: #ef4444; }
         
         .signup-section {
             background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
@@ -415,9 +416,13 @@
             margin: 30px 0;
         }
         
-        .checkbox-group input {
-            width: auto;
-            margin-top: 4px;
+        .checkbox-group input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
         
         .checkbox-group label {
@@ -464,10 +469,10 @@
         
         .bridge-email {
             font-family: monospace;
-            background: rgba(0,0,0,0.3);
+            background: rgba(37, 99, 235, 0.06);
             padding: 10px;
             border-radius: 8px;
-            color: var(--accent);
+            color: var(--primary);
             word-break: break-all;
             margin-top: 15px;
         }
@@ -501,15 +506,15 @@
         }
         
         .disclaimer {
-            color: #555;
+            color: #94a3b8;
             font-size: 12px;
             line-height: 1.6;
         }
         
         .error-message {
-            background: rgba(255, 77, 77, 0.1);
-            border: 1px solid #ff4d4d;
-            color: #ff4d4d;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid #ef4444;
+            color: #dc2626;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -546,21 +551,21 @@
         </div>
     </nav>
     
-    <div class="mobile-nav" id="mobileNav" style="display:none;position:fixed;top:70px;left:0;width:100%;background:rgba(13,11,26,0.98);padding:20px;z-index:999;">
-        <a href="#how-it-works" onclick="closeMobileNav()">How It Works</a>
-        <a href="#features" onclick="closeMobileNav()">Features</a>
-        <a href="#pricing" onclick="closeMobileNav()">Pricing</a>
-        <a href="#signup" class="nav-cta" onclick="closeMobileNav()">Get Started</a>
+    <div class="mobile-nav" id="mobileNav" style="display:none;position:fixed;top:70px;left:0;width:100%;background:rgba(255,255,255,0.98);border-bottom:1px solid #e2e8f0;padding:20px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+        <a href="#how-it-works" onclick="closeMobileNav()" style="display:block;padding:10px 0;color:#1e293b;text-decoration:none;font-size:16px;">How It Works</a>
+        <a href="#features" onclick="closeMobileNav()" style="display:block;padding:10px 0;color:#1e293b;text-decoration:none;font-size:16px;">Features</a>
+        <a href="#pricing" onclick="closeMobileNav()" style="display:block;padding:10px 0;color:#1e293b;text-decoration:none;font-size:16px;">Pricing</a>
+        <a href="#signup" class="nav-cta" onclick="closeMobileNav()" style="display:block;margin-top:10px;">Get Started</a>
     </div>
 
     <section class="hero">
         <div class="hero-content">
             <div class="badge">7-Day Free Trial</div>
             <h1>Never Miss a Message<br>From Inside</h1>
-            <p>Get CorrLinks emails delivered instantly as text messages to any phone. Stay connected when it matters most.</p>
+            <p>Get CorrLinks emails delivered straight to your phone as text messages. Stay connected when it matters most.</p>
             
-            <div class="price-tag">$15<span>/month</span></div>
-            <p class="trial-note">Start with 7 days free. No credit card required.</p>
+            <div class="price-tag">$25<span>/month</span></div>
+            <p class="trial-note">Try it free for 7 days. No credit card needed.</p>
             
             <div class="cta-group">
                 <a href="#signup" class="btn btn-primary">Start Free Trial →</a>
@@ -614,7 +619,7 @@
                 <div class="feature-icon">🔒</div>
                 <div>
                     <h3>Secure & Private</h3>
-                    <p>End-to-end encryption. Your data never sold or shared.</p>
+                    <p>Your data is never sold or shared with third parties. Each user gets a private, dedicated bridge address.</p>
                 </div>
             </div>
             <div class="feature">
@@ -638,13 +643,20 @@
                     <p>Set it once, it works forever. No app to install or update.</p>
                 </div>
             </div>
+            <div class="feature">
+                <div class="feature-icon">📒</div>
+                <div>
+                    <h3>Built-In Phone Book</h3>
+                    <p>Save names for each contact so prison staff sees "Mom" or "Sister" in the subject — not just a phone number. Manage contacts by emailing simple commands to your bridge address.</p>
+                </div>
+            </div>
         </div>
     </section>
 
     <section class="section" id="pricing">
         <div class="section-title">
             <h2>Why Choose Email Genie?</h2>
-            <p>Compared to official CorrLinks Text service</p>
+            <p>Compared to other CorrLinks SMS relay services</p>
         </div>
         
         <div class="comparison">
@@ -652,18 +664,18 @@
                 <thead>
                     <tr>
                         <th>Feature</th>
-                        <th>CorrLinks Text</th>
+                        <th>Other SMS Services</th>
                         <th class="highlight">Email Genie</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>Monthly Price</td><td>$15-36</td><td class="highlight">$15 flat</td></tr>
+                    <tr><td>Monthly Price</td><td>~$20/month</td><td class="highlight">$25/month</td></tr>
                     <tr><td>Free Trial</td><td class="cross">✗ None</td><td class="check">✓ 7 days</td></tr>
-                    <tr><td>Character Limit</td><td>160 characters</td><td class="highlight">1,600 characters</td></tr>
-                    <tr><td>Flip Phone Support</td><td class="cross">✗ No</td><td class="check">✓ Yes</td></tr>
-                    <tr><td>Private Email</td><td class="cross">✗ Shared</td><td class="check">✓ Unique</td></tr>
-                    <tr><td>Reply by Text</td><td class="cross">✗ Not available</td><td class="check">✓ Automatic</td></tr>
-                    <tr><td>Setup Time</td><td>3-5 days</td><td class="highlight">Instant</td></tr>
+                    <tr><td>Contact Phone Book</td><td class="cross">✗ Not available</td><td class="check">✓ Built-in</td></tr>
+                    <tr><td>Flip Phone Support</td><td class="cross">✗ Limited</td><td class="check">✓ Yes</td></tr>
+                    <tr><td>Private Bridge Email</td><td class="cross">✗ Shared pools</td><td class="check">✓ Unique per user</td></tr>
+                    <tr><td>Reply by Text</td><td class="cross">✗ Varies</td><td class="check">✓ Automatic</td></tr>
+                    <tr><td>Named Contacts in Subject</td><td class="cross">✗ Shows number</td><td class="check">✓ Shows saved name</td></tr>
                 </tbody>
             </table>
         </div>
@@ -673,7 +685,7 @@
         <div class="signup-container">
             <div class="section-title">
                 <h2>Get Started Today</h2>
-                <p>Start your 7-day free trial. No credit card required.</p>
+                <p>Start your 7-day free trial — no credit card needed.</p>
             </div>
             
             <div class="form-card">
@@ -734,7 +746,7 @@
                 
                 <div class="payment-info" id="paymentInfo">
                     <h4>🎉 Trial Started!</h4>
-                    <p>After 7 days, pay $15/month via Cash App, Venmo, or Zelle to continue service.</p>
+                    <p>After 7 days, pay $25/month via Cash App, Venmo, or Zelle to continue service.</p>
                     <p><strong>Cash App:</strong> $YourCashTag</p>
                     <p><strong>PayPal:</strong> your@email.com</p>
                     <p><strong>Zelle:</strong> your-phone-number</p>
@@ -768,35 +780,6 @@
     </footer>
 
     <script>
-        function generateBridgeEmail() {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 5);
-            return `user-${timestamp}-${random}@emailgenie.org`;
-        }
-        
-        function formatPhone(phone) {
-            return phone.replace(/\D/g, '');
-        }
-        
-        const carrierGateways = {
-            verizon: 'vtext.com',
-            att: 'txt.att.net',
-            tmobile: 'tmomail.net',
-            sprint: 'messaging.sprintpcs.com',
-            cricket: 'sms.cricketwireless.net',
-            boost: 'sms.myboostmobile.com',
-            metro: 'mymetropcs.com',
-            straighttalk: 'vtext.com',
-            uscellular: 'email.uscc.net',
-            other: 'vtext.com'
-        };
-        
-        function getSmsEmail(phone, carrier) {
-            const cleanPhone = formatPhone(phone);
-            const gateway = carrierGateways[carrier] || carrierGateways.other;
-            return `${cleanPhone}@${gateway}`;
-        }
-        
         function toggleMobileNav() {
             const nav = document.getElementById('mobileNav');
             nav.style.display = nav.style.display === 'none' ? 'block' : 'none';
@@ -806,30 +789,43 @@
             document.getElementById('mobileNav').style.display = 'none';
         }
         
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const formData = {
-                id: Date.now().toString(),
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                carrier: document.getElementById('carrier').value,
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting…';
+
+            const payload = {
+                name:            document.getElementById('name').value,
+                email:           document.getElementById('email').value,
+                phone:           document.getElementById('phone').value,
+                carrier:         document.getElementById('carrier').value,
                 corrlinks_email: document.getElementById('corrlinks').value || '',
-                inmate_name: document.getElementById('inmate').value || '',
-                bridge_email: generateBridgeEmail(),
-                created_at: new Date().toISOString()
+                inmate_name:     document.getElementById('inmate').value || ''
             };
-            
-            // Save to localStorage
-            let requests = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
-            requests.push(formData);
-            localStorage.setItem('emailGeniePendingRequests', JSON.stringify(requests));
-            
-            // Show success
-            document.getElementById('signupForm').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
-            document.getElementById('bridgeEmailDisplay').textContent = formData.bridge_email;
+
+            try {
+                const res  = await fetch('/api/signup', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Signup failed. Please try again.');
+                }
+
+                document.getElementById('signupForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                // Bridge email is assigned by admin after approval; show a placeholder
+                document.getElementById('bridgeEmailDisplay').textContent = "Pending admin approval — you'll receive it by email.";
+            } catch (err) {
+                alert('Error: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Started Free';
+            }
         });
         
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
