@@ -47,6 +47,18 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_users_bridge_email ON users(bridge_email);
     CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
     CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+
+    CREATE TABLE IF NOT EXISTS contacts (
+        id         TEXT PRIMARY KEY,
+        user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        phone      TEXT NOT NULL,
+        name       TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(user_id, phone)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);
+    CREATE INDEX IF NOT EXISTS idx_contacts_lookup ON contacts(user_id, phone);
 `);
 
 // ── Carrier gateway map ────────────────────────────────────────────────────
@@ -129,6 +141,47 @@ function deleteUser(id) {
     db.prepare('DELETE FROM users WHERE id = ?').run(id);
 }
 
+// ── Contacts / Phone Book ──────────────────────────────────────────────────
+
+/**
+ * Return all contacts for a user, ordered by name.
+ */
+function getContactsByUserId(userId) {
+    return db.prepare('SELECT * FROM contacts WHERE user_id = ? ORDER BY name ASC').all(userId);
+}
+
+/**
+ * Insert or update a contact (upsert by user_id + phone).
+ */
+function upsertContact(userId, phone, name) {
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    const id = require('crypto').randomBytes(6).toString('hex');
+    db.prepare(`
+        INSERT INTO contacts (id, user_id, phone, name)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id, phone) DO UPDATE SET name = excluded.name
+    `).run(id, userId, cleanPhone, name);
+    return db.prepare('SELECT * FROM contacts WHERE user_id = ? AND phone = ?').get(userId, cleanPhone);
+}
+
+/**
+ * Delete a single contact by user_id + phone.
+ */
+function deleteContact(userId, phone) {
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    db.prepare('DELETE FROM contacts WHERE user_id = ? AND phone = ?').run(userId, cleanPhone);
+}
+
+/**
+ * Look up the display name for a phone number within a user's contact list.
+ * Returns the saved name, or null if not found.
+ */
+function lookupContactName(userId, phone) {
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    const row = db.prepare('SELECT name FROM contacts WHERE user_id = ? AND phone = ?').get(userId, cleanPhone);
+    return row ? row.name : null;
+}
+
 module.exports = {
     db,
     createUser,
@@ -141,5 +194,9 @@ module.exports = {
     activateUser,
     deleteUser,
     getSmsEmail,
-    CARRIER_GATEWAYS
+    CARRIER_GATEWAYS,
+    getContactsByUserId,
+    upsertContact,
+    deleteContact,
+    lookupContactName
 };

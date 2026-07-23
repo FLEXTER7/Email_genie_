@@ -6,6 +6,10 @@
  *   POST /webhooks/inbound-email — Mailgun inbound parse (email → SMS)
  *   POST /webhooks/sms-reply     — Twilio SMS reply (SMS → CorrLinks email)
  *
+ *   GET  /api/contacts/:userId       — get phonebook contacts for a user
+ *   POST /api/contacts/:userId       — add/update a contact
+ *   DELETE /api/contacts/:userId/:phone — remove a contact
+ *
  *   GET  /api/admin/users        — admin: list all users
  *   GET  /api/admin/pending      — admin: pending requests
  *   GET  /api/admin/active       — admin: active users
@@ -143,12 +147,18 @@ app.post('/api/signup', (req, res) => {
 //   Routes → Match recipient: .*@emailgenie.org
 //   Action: forward("https://your-domain.com/webhooks/inbound-email")
 //
+// Phonebook commands (inmate emails the bridge address to manage contacts):
+//   MENU                        — list available commands
+//   PHONEBOOK LIST              — show saved contacts
+//   PHONEBOOK ADD [name] [phone] — save a contact
+//   PHONEBOOK REMOVE [phone]    — remove a contact
+//
 app.post('/webhooks/inbound-email', upload.none(), async (req, res) => {
     try {
         const recipient = (req.body.recipient || '').toLowerCase().trim();
         const sender    = sanitizeText(req.body.sender || req.body.from || '(unknown)', 100);
         const subject   = sanitizeText(req.body.subject || '(no subject)', 200);
-        const bodyText  = req.body['body-plain'] || req.body.text || '';
+        const bodyText  = (req.body['body-plain'] || req.body.text || '').trim();
 
         console.log(`[inbound-email] To: ${recipient}  From: ${sender}  Subject: ${subject}`);
 
@@ -159,10 +169,86 @@ app.post('/webhooks/inbound-email', upload.none(), async (req, res) => {
             return res.status(200).send('ok');   // always 200 so Mailgun stops retrying
         }
 
+        // ── Phonebook command handling ────────────────────────────────────
+        const cmdLine = bodyText.split('\n')[0].trim().toUpperCase();
+
+        if (cmdLine === 'MENU') {
+            const menu =
+`Email Genie — Available Commands
+
+Send any of these commands to your bridge email address:
+
+MENU
+  Show this help message.
+
+PHONEBOOK LIST
+  Show all saved contacts.
+
+PHONEBOOK ADD [name] [phone]
+  Save a contact. Example: PHONEBOOK ADD Mom 5551234567
+
+PHONEBOOK REMOVE [phone]
+  Remove a contact. Example: PHONEBOOK REMOVE 5551234567
+
+Your saved contacts are used as the "From" name on emails you
+receive, so prison staff sees a real name instead of a number.`;
+            await sms.sendSms(user.phone, user.carrier, menu.slice(0, 1600));
+            return res.status(200).send('ok');
+        }
+
+        if (cmdLine.startsWith('PHONEBOOK ')) {
+            const args = bodyText.trim().replace(/^PHONEBOOK\s+/i, '');
+            const subCmd = args.split(/\s+/)[0].toUpperCase();
+
+            if (subCmd === 'LIST') {
+                const contacts = db.getContactsByUserId(user.id);
+                let reply;
+                if (contacts.length === 0) {
+                    reply = 'Your phone book is empty.\nSend: PHONEBOOK ADD [name] [phone]';
+                } else {
+                    reply = 'Your saved contacts:\n' +
+                        contacts.map(c => `  ${c.name}: ${c.phone}`).join('\n');
+                }
+                await sms.sendSms(user.phone, user.carrier, reply.slice(0, 1600));
+                return res.status(200).send('ok');
+            }
+
+            if (subCmd === 'ADD') {
+                // Expects: ADD [name] [phone]  (name may contain spaces; phone is last token)
+                const tokens = args.replace(/^ADD\s+/i, '').trim().split(/\s+/);
+                if (tokens.length >= 2) {
+                    const contactPhone = tokens[tokens.length - 1];
+                    const contactName  = sanitizeText(tokens.slice(0, -1).join(' '), 100);
+                    db.upsertContact(user.id, contactPhone, contactName);
+                    await sms.sendSms(user.phone, user.carrier, `Saved: ${contactName} → ${contactPhone.replace(/\D/g, '')}`);
+                } else {
+                    await sms.sendSms(user.phone, user.carrier, 'Usage: PHONEBOOK ADD [name] [phone]\nExample: PHONEBOOK ADD Mom 5551234567');
+                }
+                return res.status(200).send('ok');
+            }
+
+            if (subCmd === 'REMOVE') {
+                const contactPhone = args.replace(/^REMOVE\s+/i, '').trim();
+                if (contactPhone) {
+                    db.deleteContact(user.id, contactPhone);
+                    await sms.sendSms(user.phone, user.carrier, `Removed contact for ${contactPhone.replace(/\D/g, '')}.`);
+                } else {
+                    await sms.sendSms(user.phone, user.carrier, 'Usage: PHONEBOOK REMOVE [phone]\nExample: PHONEBOOK REMOVE 5551234567');
+                }
+                return res.status(200).send('ok');
+            }
+
+            // Unknown subcommand — show help
+            await sms.sendSms(user.phone, user.carrier,
+                'Unknown PHONEBOOK command. Available: LIST, ADD [name] [phone], REMOVE [phone]');
+            return res.status(200).send('ok');
+        }
+        // ── End phonebook command handling ────────────────────────────────
+
         // Compose SMS — Twilio supports up to 1600 chars (10 segments);
         // keep messages reasonably sized to avoid extra charges.
         const MAX_SMS_LEN = 1600;
-        let msgBody = `CorrLinks msg from ${sender}:\n${bodyText.trim()}`;
+        let msgBody = `CorrLinks msg from ${sender}:\n${bodyText}`;
         if (msgBody.length > MAX_SMS_LEN) {
             msgBody = msgBody.slice(0, MAX_SMS_LEN - 3) + '...';
         }
@@ -212,7 +298,9 @@ app.post('/webhooks/sms-reply', async (req, res) => {
 </Response>`);
         }
 
-        await email.forwardSmsToEmail(user.corrlinks_email, sanitizeText(user.name, 100), body);
+        // Use saved contact name if one exists for this subscriber's number, otherwise use account name
+        const contactName = db.lookupContactName(user.id, fromNumber) || user.name;
+        await email.forwardSmsToEmail(user.corrlinks_email, sanitizeText(contactName, 100), body);
         console.log(`[sms-reply] Forwarded to CorrLinks: ${user.corrlinks_email}`);
 
         // Empty TwiML response — don't send an auto-reply SMS
@@ -221,6 +309,30 @@ app.post('/webhooks/sms-reply', async (req, res) => {
         console.error('[sms-reply] Error:', err.message);
         res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?><Response></Response>`);
     }
+});
+
+// ── Contacts / Phonebook API ───────────────────────────────────────────────
+
+app.get('/api/contacts/:userId', requireAdmin, (req, res) => {
+    const user = db.getUserById(req.params.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    res.json(db.getContactsByUserId(req.params.userId));
+});
+
+app.post('/api/contacts/:userId', requireAdmin, (req, res) => {
+    const user = db.getUserById(req.params.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    const { phone, name } = req.body;
+    if (!phone || !name) return res.status(400).json({ error: 'phone and name are required.' });
+    const contact = db.upsertContact(req.params.userId, phone, sanitizeText(name, 100));
+    res.json({ success: true, contact });
+});
+
+app.delete('/api/contacts/:userId/:phone', requireAdmin, (req, res) => {
+    const user = db.getUserById(req.params.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    db.deleteContact(req.params.userId, req.params.phone);
+    res.json({ success: true });
 });
 
 // ── Admin API ──────────────────────────────────────────────────────────────

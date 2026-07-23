@@ -64,10 +64,36 @@ Your Email Genie bridge email is ready:
 
 How to use:
 1. Add this email address as a contact in your CorrLinks account.
-2. Any emails sent to this address will arrive as text messages to your phone.
-3. Reply to those texts and they'll be forwarded back through CorrLinks.
+2. Any emails sent to this address will arrive as text messages on your phone.
+3. Reply to those texts and they will be forwarded back through CorrLinks.
 
-Questions? Reply to this email or contact support@emailgenie.org.
+─────────────────────────────────────
+PHONE BOOK COMMANDS
+─────────────────────────────────────
+To manage your contact phone book, email your bridge address with one of
+these commands as the message body:
+
+  MENU
+    Show all available commands.
+
+  PHONEBOOK LIST
+    See all your saved contacts.
+
+  PHONEBOOK ADD [name] [phone]
+    Save a person's name for their phone number.
+    Example message body:  PHONEBOOK ADD Mom 5551234567
+
+  PHONEBOOK REMOVE [phone]
+    Remove a saved contact.
+    Example message body:  PHONEBOOK REMOVE 5551234567
+
+When someone texts your phone and you have them saved in your phone book,
+their saved name will appear as the sender in your CorrLinks inbox instead
+of a generic label — so prison staff sees a real name, not just a number.
+
+─────────────────────────────────────
+
+Questions? Contact support@emailgenie.org.
 
 – Email Genie Team
 `
