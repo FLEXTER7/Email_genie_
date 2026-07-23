@@ -409,11 +409,11 @@
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
             <h1>Email Genie Admin</h1>
-            <p>Enter your admin password</p>
-            <input type="password" id="adminPass" placeholder="Admin Password">
+            <p>Enter your admin token</p>
+            <input type="password" id="adminPass" placeholder="Admin Token">
             <button onclick="login()">Access Dashboard</button>
             <p style="color: #666; font-size: 12px; margin-top: 15px; text-align: center;">
-                Default: admin123
+                Set via ADMIN_SECRET in your .env file
             </p>
         </div>
     </div>
@@ -565,45 +565,61 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORD = 'admin123';
+        let adminToken = '';
         let allUsers = [];
         let currentUser = null;
 
-        function login() {
-            const pass = document.getElementById('adminPass').value;
-            
-            if (pass !== ADMIN_PASSWORD) {
-                alert('Invalid password');
+        async function login() {
+            const pass = document.getElementById('adminPass').value.trim();
+            if (!pass) { alert('Enter your admin token.'); return; }
+
+            // Verify the token by hitting the API
+            const res = await fetch('/api/admin/users', {
+                headers: { 'X-Admin-Token': pass }
+            });
+
+            if (!res.ok) {
+                alert('Invalid admin token');
                 return;
             }
-            
+
+            adminToken = pass;
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             loadDashboard();
         }
 
         function logout() {
+            adminToken = '';
             location.reload();
         }
 
-        function loadDashboard() {
+        async function apiGet(path) {
+            const res = await fetch(path, { headers: { 'X-Admin-Token': adminToken } });
+            if (!res.ok) throw new Error(`API error ${res.status}`);
+            return res.json();
+        }
+
+        async function loadDashboard() {
             try {
-                const pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
-                const active = JSON.parse(localStorage.getItem('emailGenieActiveUsers') || '[]');
-                
+                const [pending, active] = await Promise.all([
+                    apiGet('/api/admin/pending'),
+                    apiGet('/api/admin/active')
+                ]);
+
                 allUsers = [...pending, ...active];
-                
+
                 document.getElementById('pendingCount').textContent = pending.length;
                 document.getElementById('activeCount').textContent = active.length;
                 document.getElementById('totalCount').textContent = allUsers.length;
-                
+
                 renderPendingTable(pending);
                 renderActiveTable(active);
                 renderAllTable(allUsers);
-                
+
             } catch (err) {
                 console.error('Error loading dashboard:', err);
-                alert('Error loading data');
+                alert('Error loading data: ' + err.message);
             }
         }
 
@@ -709,14 +725,16 @@
         function openApproveModal(userId) {
             currentUser = allUsers.find(u => u.id === userId);
             if (!currentUser) return;
-            
+
             document.getElementById('modalName').value = currentUser.name;
             document.getElementById('modalEmail').value = currentUser.email;
             document.getElementById('modalPhone').value = currentUser.phone;
-            
-            const bridgeEmail = currentUser.bridge_email || generateBridgeEmail();
+
+            // Bridge email will be generated server-side on approval;
+            // show a preview here only
+            const bridgeEmail = currentUser.bridge_email || '(generated on approval)';
             document.getElementById('bridgeEmailDisplay').textContent = bridgeEmail;
-            
+
             const message = `Hi ${currentUser.name},
 
 Your Email Genie bridge email is ready:
@@ -732,7 +750,7 @@ Questions? Reply to this email.
 
 Best,
 Email Genie Team`;
-            
+
             document.getElementById('messageTemplate').value = message;
             document.getElementById('approveModal').classList.add('active');
         }
@@ -741,12 +759,6 @@ Email Genie Team`;
             document.getElementById('approveModal').classList.remove('active');
             document.getElementById('copyFeedback').style.display = 'none';
             currentUser = null;
-        }
-
-        function generateBridgeEmail() {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 5);
-            return `user-${timestamp}-${random}@emailgenie.org`;
         }
 
         function copyBridgeEmail() {
@@ -777,39 +789,38 @@ Email Genie Team`;
             });
         }
 
-        function confirmApprove() {
+        async function confirmApprove() {
             if (!currentUser) return;
-            
-            const bridgeEmail = document.getElementById('bridgeEmailDisplay').textContent;
-            
-            const updatedUser = {
-                ...currentUser,
-                bridge_email: bridgeEmail,
-                status: 'active',
-                activated_at: new Date().toISOString()
-            };
-            
-            let pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
-            pending = pending.filter(u => u.id !== currentUser.id);
-            localStorage.setItem('emailGeniePendingRequests', JSON.stringify(pending));
-            
-            let active = JSON.parse(localStorage.getItem('emailGenieActiveUsers') || '[]');
-            active.push(updatedUser);
-            localStorage.setItem('emailGenieActiveUsers', JSON.stringify(active));
-            
-            closeModal();
-            loadDashboard();
-            alert('✓ User approved! Bridge email: ' + bridgeEmail + '\n\nManually send them the message above.');
+
+            try {
+                const res = await fetch(`/api/admin/approve/${currentUser.id}`, {
+                    method:  'POST',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Approval failed');
+
+                closeModal();
+                await loadDashboard();
+                alert(`✓ User approved!\nBridge email: ${data.user.bridge_email}\n\nAn approval email has been sent to ${data.user.email}.`);
+            } catch (err) {
+                alert('Error approving user: ' + err.message);
+            }
         }
 
-        function deleteRequest(userId) {
+        async function deleteRequest(userId) {
             if (!confirm('Delete this request?')) return;
-            
-            let pending = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
-            pending = pending.filter(u => u.id !== userId);
-            localStorage.setItem('emailGeniePendingRequests', JSON.stringify(pending));
-            
-            loadDashboard();
+
+            try {
+                const res = await fetch(`/api/admin/users/${userId}`, {
+                    method:  'DELETE',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                if (!res.ok) throw new Error('Delete failed');
+                await loadDashboard();
+            } catch (err) {
+                alert('Error deleting user: ' + err.message);
+            }
         }
 
         function escapeHtml(text) {

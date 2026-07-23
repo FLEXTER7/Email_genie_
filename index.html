@@ -768,35 +768,6 @@
     </footer>
 
     <script>
-        function generateBridgeEmail() {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 5);
-            return `user-${timestamp}-${random}@emailgenie.org`;
-        }
-        
-        function formatPhone(phone) {
-            return phone.replace(/\D/g, '');
-        }
-        
-        const carrierGateways = {
-            verizon: 'vtext.com',
-            att: 'txt.att.net',
-            tmobile: 'tmomail.net',
-            sprint: 'messaging.sprintpcs.com',
-            cricket: 'sms.cricketwireless.net',
-            boost: 'sms.myboostmobile.com',
-            metro: 'mymetropcs.com',
-            straighttalk: 'vtext.com',
-            uscellular: 'email.uscc.net',
-            other: 'vtext.com'
-        };
-        
-        function getSmsEmail(phone, carrier) {
-            const cleanPhone = formatPhone(phone);
-            const gateway = carrierGateways[carrier] || carrierGateways.other;
-            return `${cleanPhone}@${gateway}`;
-        }
-        
         function toggleMobileNav() {
             const nav = document.getElementById('mobileNav');
             nav.style.display = nav.style.display === 'none' ? 'block' : 'none';
@@ -806,30 +777,43 @@
             document.getElementById('mobileNav').style.display = 'none';
         }
         
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const formData = {
-                id: Date.now().toString(),
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                carrier: document.getElementById('carrier').value,
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting…';
+
+            const payload = {
+                name:            document.getElementById('name').value,
+                email:           document.getElementById('email').value,
+                phone:           document.getElementById('phone').value,
+                carrier:         document.getElementById('carrier').value,
                 corrlinks_email: document.getElementById('corrlinks').value || '',
-                inmate_name: document.getElementById('inmate').value || '',
-                bridge_email: generateBridgeEmail(),
-                created_at: new Date().toISOString()
+                inmate_name:     document.getElementById('inmate').value || ''
             };
-            
-            // Save to localStorage
-            let requests = JSON.parse(localStorage.getItem('emailGeniePendingRequests') || '[]');
-            requests.push(formData);
-            localStorage.setItem('emailGeniePendingRequests', JSON.stringify(requests));
-            
-            // Show success
-            document.getElementById('signupForm').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
-            document.getElementById('bridgeEmailDisplay').textContent = formData.bridge_email;
+
+            try {
+                const res  = await fetch('/api/signup', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Signup failed. Please try again.');
+                }
+
+                document.getElementById('signupForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                // Bridge email is assigned by admin after approval; show a placeholder
+                document.getElementById('bridgeEmailDisplay').textContent = 'Pending admin approval — you\'ll receive it by email.';
+            } catch (err) {
+                alert('Error: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Started Free';
+            }
         });
         
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
