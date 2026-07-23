@@ -21,11 +21,13 @@
 
 require('dotenv').config();
 
-const express  = require('express');
-const cors     = require('cors');
-const multer   = require('multer');
-const path     = require('path');
-const crypto   = require('crypto');
+const express    = require('express');
+const cors       = require('cors');
+const multer     = require('multer');
+const path       = require('path');
+const crypto     = require('crypto');
+const twilio     = require('twilio');
+const rateLimit  = require('express-rate-limit');
 
 const db    = require('./server/db');
 const sms   = require('./server/sms');
@@ -100,6 +102,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 // multer for Mailgun multipart inbound email — use any() so attached files don't cause errors
 const upload = multer();
 
+// ── Rate limiters ──────────────────────────────────────────────────────────
+// Webhook endpoints: generous limit to accommodate legitimate volume bursts,
+// but tight enough to throttle abuse.
+const webhookLimiter = rateLimit({
+    windowMs: 60 * 1000,   // 1 minute
+    max: 120,              // 2 requests/second average
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
+// Admin API: tighter limit to protect authentication endpoints.
+const adminLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
 // ── Webhook verification helpers ───────────────────────────────────────────
 
 const MAILGUN_SIGNING_KEY = process.env.MAILGUN_SIGNING_KEY || '';
@@ -127,7 +149,7 @@ function verifyTwilioSignature(req) {
     if (!TWILIO_AUTH_TOKEN) return true; // skip verification if unconfigured (dev only)
     const signature = req.headers['x-twilio-signature'] || '';
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-    return require('twilio').validateRequest(TWILIO_AUTH_TOKEN, signature, url, req.body);
+    return twilio.validateRequest(TWILIO_AUTH_TOKEN, signature, url, req.body);
 }
 
 // ── Helper ─────────────────────────────────────────────────────────────────
@@ -194,7 +216,7 @@ app.post('/api/signup', (req, res) => {
 //   PHONEBOOK ADD [name] [phone] — save a contact
 //   PHONEBOOK REMOVE [phone]    — remove a contact
 //
-app.post('/webhooks/inbound-email', upload.any(), async (req, res) => {
+app.post('/webhooks/inbound-email', webhookLimiter, upload.any(), async (req, res) => {
     try {
         // Verify Mailgun webhook signature
         const { timestamp, token, signature } = req.body;
@@ -320,7 +342,7 @@ receive, so prison staff sees a real name instead of a number.`;
 //   Phone Numbers → Messaging → "A message comes in" webhook:
 //   POST https://your-domain.com/webhooks/sms-reply
 //
-app.post('/webhooks/sms-reply', async (req, res) => {
+app.post('/webhooks/sms-reply', webhookLimiter, async (req, res) => {
     try {
         // Verify Twilio webhook signature
         if (TWILIO_AUTH_TOKEN && !verifyTwilioSignature(req)) {
@@ -369,6 +391,9 @@ app.post('/webhooks/sms-reply', async (req, res) => {
 });
 
 // ── Contacts / Phonebook API ───────────────────────────────────────────────
+
+// Apply rate limiting to all /api/* routes (they all require admin auth)
+app.use('/api/', adminLimiter);
 
 app.get('/api/contacts/:userId', requireAdmin, (req, res) => {
     const user = db.getUserById(req.params.userId);
