@@ -131,7 +131,14 @@ const MAILGUN_SIGNING_KEY = process.env.MAILGUN_SIGNING_KEY || '';
  * https://documentation.mailgun.com/en/latest/user_manual.html#webhooks
  */
 function verifyMailgunSignature(timestamp, token, signature) {
-    if (!MAILGUN_SIGNING_KEY) return true; // skip verification if key not set (dev only)
+    if (!MAILGUN_SIGNING_KEY) {
+        // In production, refuse all requests if the signing key is missing
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[inbound-email] MAILGUN_SIGNING_KEY is not set in production — rejecting request');
+            return false;
+        }
+        return true; // allow bypass in development/test only
+    }
     const value = timestamp + token;
     const computed = crypto.createHmac('sha256', MAILGUN_SIGNING_KEY).update(value).digest('hex');
     try {
@@ -146,7 +153,14 @@ function verifyMailgunSignature(timestamp, token, signature) {
  * https://www.twilio.com/docs/usage/webhooks/webhooks-security
  */
 function verifyTwilioSignature(req) {
-    if (!TWILIO_AUTH_TOKEN) return true; // skip verification if unconfigured (dev only)
+    if (!TWILIO_AUTH_TOKEN) {
+        // In production, refuse all requests if the auth token is missing
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[sms-reply] TWILIO_AUTH_TOKEN is not set in production — rejecting request');
+            return false;
+        }
+        return true; // allow bypass in development/test only
+    }
     const signature = req.headers['x-twilio-signature'] || '';
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     return twilio.validateRequest(TWILIO_AUTH_TOKEN, signature, url, req.body);
