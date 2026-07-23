@@ -809,7 +809,7 @@
                 document.getElementById('signupForm').style.display = 'none';
                 document.getElementById('successMessage').style.display = 'block';
                 // Bridge email is assigned by admin after approval; show a placeholder
-                document.getElementById('bridgeEmailDisplay').textContent = 'Pending admin approval — you\'ll receive it by email.';
+                document.getElementById('bridgeEmailDisplay').textContent = "Pending admin approval — you'll receive it by email.";
             } catch (err) {
                 alert('Error: ' + err.message);
                 submitBtn.disabled = false;
