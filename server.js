@@ -298,7 +298,10 @@ app.post('/webhooks/sms-reply', async (req, res) => {
 </Response>`);
         }
 
-        // Use saved contact name if one exists for this subscriber's number, otherwise use account name
+        // Use the inmate's saved display name for this subscriber's phone if one exists
+        // (set via "PHONEBOOK ADD [name] [phone]" email command), otherwise fall back to
+        // the subscriber's account name. This ensures CorrLinks shows a real name in the
+        // message subject rather than a generic label.
         const contactName = db.lookupContactName(user.id, fromNumber) || user.name;
         await email.forwardSmsToEmail(user.corrlinks_email, sanitizeText(contactName, 100), body);
         console.log(`[sms-reply] Forwarded to CorrLinks: ${user.corrlinks_email}`);

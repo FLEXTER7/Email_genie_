@@ -4,7 +4,8 @@
  * while keeping the same exported function signatures.
  */
 
-const path = require('path');
+const path   = require('path');
+const crypto = require('crypto');
 const Database = require('better-sqlite3');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'emailgenie.db');
@@ -155,7 +156,7 @@ function getContactsByUserId(userId) {
  */
 function upsertContact(userId, phone, name) {
     const cleanPhone = String(phone).replace(/\D/g, '');
-    const id = require('crypto').randomBytes(6).toString('hex');
+    const id = crypto.randomBytes(6).toString('hex');
     db.prepare(`
         INSERT INTO contacts (id, user_id, phone, name)
         VALUES (?, ?, ?, ?)
