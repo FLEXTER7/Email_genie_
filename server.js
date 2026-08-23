@@ -199,7 +199,9 @@ function sanitizeText(value, maxLen = 200) {
 
 function normalizeUsPhone(value) {
     const digits = String(value || '').replace(/\D/g, '');
-    return digits.length === 10 ? digits : null;
+    if (digits.length === 10) return digits;
+    if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);
+    return null;
 }
 
 function isValidEmail(value) {
@@ -219,18 +221,22 @@ app.post('/api/signup', (req, res) => {
             return res.status(400).json({ error: 'name, email, phone, and carrier are required.' });
         }
 
+        const normalizedEmail = sanitizeText(userEmail, 254).toLowerCase();
+        const normalizedCorrLinksEmail = corrlinks_email ? sanitizeText(corrlinks_email, 254).toLowerCase() : '';
+        const normalizedCarrier = String(carrier || '').trim();
+
         // Validate phone: must be a 10-digit US number after stripping non-digits
         const cleanPhone = normalizeUsPhone(phone);
         if (!cleanPhone) {
             return res.status(400).json({ error: 'phone must be a 10-digit US number.' });
         }
-        if (!isValidEmail(userEmail)) {
+        if (!isValidEmail(normalizedEmail)) {
             return res.status(400).json({ error: 'email must be a valid email address.' });
         }
-        if (corrlinks_email && !isValidEmail(corrlinks_email)) {
+        if (normalizedCorrLinksEmail && !isValidEmail(normalizedCorrLinksEmail)) {
             return res.status(400).json({ error: 'corrlinks_email must be a valid email address when provided.' });
         }
-        if (!allowedCarriers.has(String(carrier))) {
+        if (!allowedCarriers.has(normalizedCarrier)) {
             return res.status(400).json({ error: 'carrier is not supported.' });
         }
 
@@ -243,10 +249,10 @@ app.post('/api/signup', (req, res) => {
         const user = db.createUser({
             id,
             name:            safeName,
-            email:           sanitizeText(userEmail, 254).toLowerCase(),
+            email:           normalizedEmail,
             phone:           cleanPhone,
-            carrier:         String(carrier),
-            corrlinks_email: corrlinks_email ? sanitizeText(corrlinks_email, 254).toLowerCase() : '',
+            carrier:         normalizedCarrier,
+            corrlinks_email: normalizedCorrLinksEmail,
             inmate_name:     sanitizeText(inmate_name || '', 100),
             bridge_email:    null,
             status:          'pending',
