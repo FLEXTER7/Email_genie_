@@ -234,7 +234,7 @@ app.post('/webhooks/inbound-email', webhookLimiter, upload.any(), async (req, re
     try {
         // Verify Mailgun webhook signature
         const { timestamp, token, signature } = req.body;
-        if (MAILGUN_SIGNING_KEY && !verifyMailgunSignature(timestamp, token, signature)) {
+        if (!verifyMailgunSignature(timestamp, token, signature)) {
             console.warn('[inbound-email] Invalid Mailgun signature — request rejected');
             return res.status(403).send('Forbidden');
         }
@@ -359,7 +359,7 @@ receive, so prison staff sees a real name instead of a number.`;
 app.post('/webhooks/sms-reply', webhookLimiter, async (req, res) => {
     try {
         // Verify Twilio webhook signature
-        if (TWILIO_AUTH_TOKEN && !verifyTwilioSignature(req)) {
+        if (!verifyTwilioSignature(req)) {
             console.warn('[sms-reply] Invalid Twilio signature — request rejected');
             return res.status(403).type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?><Response></Response>`);
         }
