@@ -35,6 +35,7 @@ const email = require('./server/email');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
 
 // ── Admin authentication ───────────────────────────────────────────────────
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
@@ -125,6 +126,17 @@ const adminLimiter = rateLimit({
 // ── Webhook verification helpers ───────────────────────────────────────────
 
 const MAILGUN_SIGNING_KEY = process.env.MAILGUN_SIGNING_KEY || '';
+
+if (process.env.NODE_ENV === 'production') {
+    if (!MAILGUN_SIGNING_KEY) {
+        console.error('FATAL: MAILGUN_SIGNING_KEY must be set in production. Exiting.');
+        process.exit(1);
+    }
+    if (!TWILIO_AUTH_TOKEN) {
+        console.error('FATAL: TWILIO_AUTH_TOKEN must be set in production. Exiting.');
+        process.exit(1);
+    }
+}
 
 /**
  * Verify a Mailgun inbound-email webhook signature.
