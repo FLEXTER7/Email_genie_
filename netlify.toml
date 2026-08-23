@@ -1,0 +1,9 @@
+[build]
+  publish = "public"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://api.emailgenie.org/api/:splat"
+  status = 200
+  force = true
+

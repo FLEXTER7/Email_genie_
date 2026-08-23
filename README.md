@@ -67,6 +67,28 @@ npm start                 # http://localhost:3000
 
 ---
 
+## Production Deployment (Netlify frontend + Render backend)
+
+Use this when your website is on Netlify (`www.emailgenie.org`) and API/webhooks are on Render (`api.emailgenie.org`).
+
+1. Deploy this repo to Render (same as above) and add custom domain `api.emailgenie.org`.
+2. In Render environment variables, set:
+   - `CORS_ORIGIN=https://www.emailgenie.org`
+3. Deploy this repo to Netlify:
+   - Publish directory: `public`
+   - Netlify config file: `netlify.toml` (already included in this repo)
+4. In DNS, set:
+   - `www` CNAME → Netlify target
+   - `api` CNAME → Render target
+5. In Twilio number settings, set inbound SMS webhook to:
+   - `POST https://api.emailgenie.org/webhooks/sms-reply`
+6. In Mailgun Routes, set forward action to:
+   - `https://api.emailgenie.org/webhooks/inbound-email`
+
+> If you use a different API subdomain, update `netlify.toml` to match.
+
+---
+
 ## DNS Setup — `emailgenie.org`
 
 Point your domain's MX records to **Mailgun**:
@@ -88,7 +110,7 @@ Point your domain's MX records to **Mailgun**:
 4. Go to **Receiving → Create Route**:
    - **Expression type**: Match Recipient
    - **Recipient**: `.*@emailgenie.org`
-   - **Actions**: Forward → `https://your-deployed-url.com/webhooks/inbound-email`
+   - **Actions**: Forward → `https://api.emailgenie.org/webhooks/inbound-email`
 5. Copy your Mailgun SMTP credentials into `.env` (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`).
 
 ---
@@ -98,7 +120,7 @@ Point your domain's MX records to **Mailgun**:
 1. Log in to [Twilio](https://console.twilio.com).
 2. Buy a phone number (**Phone Numbers → Buy a Number**).
 3. Under the number's settings → **Messaging** → set:
-   - "A Message Comes In" webhook: `POST https://your-deployed-url.com/webhooks/sms-reply`
+   - "A Message Comes In" webhook: `POST https://api.emailgenie.org/webhooks/sms-reply`
 4. Copy your **Account SID**, **Auth Token**, and phone number into `.env`.
 
 ---
