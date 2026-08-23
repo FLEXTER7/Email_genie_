@@ -94,14 +94,20 @@ app.use(cors({
         }
     }
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50kb' }));
+app.use(express.urlencoded({ extended: true, limit: '50kb' }));
 
 // Serve static HTML files from the public directory only
 app.use(express.static(path.join(__dirname, 'public')));
 
 // multer for Mailgun multipart inbound email — use any() so attached files don't cause errors
-const upload = multer();
+const upload = multer({
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB per file
+        files: 5,
+        fields: 100
+    }
+});
 
 // ── Rate limiters ──────────────────────────────────────────────────────────
 // Webhook endpoints: generous limit to accommodate legitimate volume bursts,
@@ -191,6 +197,19 @@ function sanitizeText(value, maxLen = 200) {
     return String(value).replace(/[\r\n\t]/g, ' ').trim().slice(0, maxLen);
 }
 
+function normalizeUsPhone(value) {
+    const digits = String(value || '').replace(/\D/g, '');
+    return digits.length === 10 ? digits : null;
+}
+
+function isValidEmail(value) {
+    const text = String(value || '').trim();
+    if (text.length > 254) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+}
+
+const allowedCarriers = new Set(Object.keys(db.CARRIER_GATEWAYS));
+
 // ── Public signup ──────────────────────────────────────────────────────────
 app.post('/api/signup', (req, res) => {
     try {
@@ -201,20 +220,34 @@ app.post('/api/signup', (req, res) => {
         }
 
         // Validate phone: must be a 10-digit US number after stripping non-digits
-        const cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.length !== 10) {
+        const cleanPhone = normalizeUsPhone(phone);
+        if (!cleanPhone) {
             return res.status(400).json({ error: 'phone must be a 10-digit US number.' });
+        }
+        if (!isValidEmail(userEmail)) {
+            return res.status(400).json({ error: 'email must be a valid email address.' });
+        }
+        if (corrlinks_email && !isValidEmail(corrlinks_email)) {
+            return res.status(400).json({ error: 'corrlinks_email must be a valid email address when provided.' });
+        }
+        if (!allowedCarriers.has(String(carrier))) {
+            return res.status(400).json({ error: 'carrier is not supported.' });
+        }
+
+        const safeName = sanitizeText(name, 100);
+        if (!safeName) {
+            return res.status(400).json({ error: 'name is required.' });
         }
 
         const id = Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
         const user = db.createUser({
             id,
-            name,
-            email:           userEmail,
-            phone,
-            carrier,
-            corrlinks_email: corrlinks_email || '',
-            inmate_name:     inmate_name || '',
+            name:            safeName,
+            email:           sanitizeText(userEmail, 254).toLowerCase(),
+            phone:           cleanPhone,
+            carrier:         String(carrier),
+            corrlinks_email: corrlinks_email ? sanitizeText(corrlinks_email, 254).toLowerCase() : '',
+            inmate_name:     sanitizeText(inmate_name || '', 100),
             bridge_email:    null,
             status:          'pending',
             created_at:      new Date().toISOString()
@@ -315,8 +348,13 @@ receive, so prison staff sees a real name instead of a number.`;
                 if (tokens.length >= 2) {
                     const contactPhone = tokens[tokens.length - 1];
                     const contactName  = sanitizeText(tokens.slice(0, -1).join(' '), 100);
-                    db.upsertContact(user.id, contactPhone, contactName);
-                    await sms.sendSms(user.phone, user.carrier, `Saved: ${contactName} → ${contactPhone.replace(/\D/g, '')}`);
+                    const cleanContactPhone = normalizeUsPhone(contactPhone);
+                    if (!cleanContactPhone || !contactName) {
+                        await sms.sendSms(user.phone, user.carrier, 'Usage: PHONEBOOK ADD [name] [phone]\nExample: PHONEBOOK ADD Mom 5551234567');
+                        return res.status(200).send('ok');
+                    }
+                    db.upsertContact(user.id, cleanContactPhone, contactName);
+                    await sms.sendSms(user.phone, user.carrier, `Saved: ${contactName} → ${cleanContactPhone}`);
                 } else {
                     await sms.sendSms(user.phone, user.carrier, 'Usage: PHONEBOOK ADD [name] [phone]\nExample: PHONEBOOK ADD Mom 5551234567');
                 }
@@ -325,9 +363,10 @@ receive, so prison staff sees a real name instead of a number.`;
 
             if (subCmd === 'REMOVE') {
                 const contactPhone = args.replace(/^REMOVE\s+/i, '').trim();
-                if (contactPhone) {
-                    db.deleteContact(user.id, contactPhone);
-                    await sms.sendSms(user.phone, user.carrier, `Removed contact for ${contactPhone.replace(/\D/g, '')}.`);
+                const cleanContactPhone = normalizeUsPhone(contactPhone);
+                if (cleanContactPhone) {
+                    db.deleteContact(user.id, cleanContactPhone);
+                    await sms.sendSms(user.phone, user.carrier, `Removed contact for ${cleanContactPhone}.`);
                 } else {
                     await sms.sendSms(user.phone, user.carrier, 'Usage: PHONEBOOK REMOVE [phone]\nExample: PHONEBOOK REMOVE 5551234567');
                 }
@@ -432,7 +471,11 @@ app.post('/api/contacts/:userId', requireAdmin, (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found.' });
     const { phone, name } = req.body;
     if (!phone || !name) return res.status(400).json({ error: 'phone and name are required.' });
-    const contact = db.upsertContact(req.params.userId, phone, sanitizeText(name, 100));
+    const cleanPhone = normalizeUsPhone(phone);
+    const safeName = sanitizeText(name, 100);
+    if (!cleanPhone) return res.status(400).json({ error: 'phone must be a 10-digit US number.' });
+    if (!safeName) return res.status(400).json({ error: 'name is required.' });
+    const contact = db.upsertContact(req.params.userId, cleanPhone, safeName);
     res.json({ success: true, contact });
 });
 
