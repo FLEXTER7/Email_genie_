@@ -157,6 +157,13 @@ function verifyMailgunSignature(timestamp, token, signature) {
         }
         return true; // allow bypass in development/test only
     }
+    const ts = Number(timestamp);
+    // Reject malformed or stale timestamps to reduce replay risk.
+    // Mailgun sends epoch seconds; allow a 15-minute clock skew window.
+    if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 15 * 60) {
+        console.warn('[inbound-email] Invalid or stale Mailgun timestamp — request rejected');
+        return false;
+    }
     const value = timestamp + token;
     const computed = crypto.createHmac('sha256', MAILGUN_SIGNING_KEY).update(value).digest('hex');
     try {
@@ -223,7 +230,7 @@ app.post('/api/signup', (req, res) => {
 
         const normalizedEmail = sanitizeText(userEmail, 254).toLowerCase();
         const normalizedCorrLinksEmail = corrlinks_email ? sanitizeText(corrlinks_email, 254).toLowerCase() : '';
-        const normalizedCarrier = String(carrier || '').trim();
+        const normalizedCarrier = String(carrier || '').trim().toLowerCase();
 
         // Validate phone: must be a 10-digit US number after stripping non-digits
         const cleanPhone = normalizeUsPhone(phone);
@@ -242,7 +249,7 @@ app.post('/api/signup', (req, res) => {
 
         const safeName = sanitizeText(name, 100);
         if (!safeName) {
-            return res.status(400).json({ error: 'name is required.' });
+            return res.status(400).json({ error: 'name must contain visible characters.' });
         }
 
         const id = Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
